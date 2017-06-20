@@ -10,7 +10,6 @@ from lib.processor import Processor
 from apyros.metalog import MetaLog, disableAsserts
 from apyros.sourcelogger import SourceLogger
 
-
 def gps_data_extension(robot, id, data):
     if id=='gps':
         robot.gps_data = data

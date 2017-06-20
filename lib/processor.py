@@ -4,8 +4,6 @@
 """
 from multiprocessing import Process, Queue
 
-import cv2  # move this away
-
 
 g_index = 0
 g_queue_out = None
@@ -13,32 +11,14 @@ g_processor = None
 g_queue_in = None
 
 
-# TODO how to externalize processing function??
-def image_callback(data):
-    assert len(data) > 1
-    filename = data[0]
-    img = cv2.imread(filename)
-    if img is not None:
-       img = img[2*768/3:,:,:]
-       r = img[:,:,0]
-       g = img[:,:,1]
-       b = img[:,:,2]
-       mask = np.logical_and(g > b, g > r)
-       img[mask] = 0
-       left = mask[:, :512].sum()
-       right = mask[:, 512:].sum()
-       return (data, left, right)    
-    return (data, None, None)
-
-
-def process_main(queue_in, queue_out):
+def process_main(queue_in, queue_out, process_fn):
     global g_index
     while True:
         data = queue_in.get()
         print "processing ...", data
         if data is None:
             break
-        ret = image_callback(data)  # TODO replace by parameter
+        ret = process_fn(data)  # TODO replace by parameter
         queue_out.put_nowait((g_index, ret))
         g_index += 1
         print "waiting ..."
@@ -52,7 +32,7 @@ class Processor:
         g_queue_in = Queue()
         self.processing = False
         g_processor = Process(target=process_main,
-                              args=(g_queue_out, g_queue_in))
+                              args=(g_queue_out, g_queue_in, process_fn))
 
     def get_result(self):
         global g_queue_in
