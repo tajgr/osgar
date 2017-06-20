@@ -92,17 +92,22 @@ def attach_sensor(robot, sensor_name, metalog):
         assert False, sensor_name  # unsuported sensor
 
 
+def camera_filler(robot, id, data):
+    if id=='camera':
+        robot.proc.push_back(data)
+
+
 def attach_processor(robot, metalog, filler, callback):
     # TODO assert called at most once
     name = 'proc'
     proc_log_name = metalog.getLog(name)
     print proc_log_name
-    if metalog.replay:
+    if False:  #metalog.replay:
         robot.proc = DummySensor()
         function = SourceLogger(None, proc_log_name).get
     else:
-        robot.extensions.append(('proc_in', filler) 
-        robot.proc = Processor(proc_in_data_extension, callback)
+        robot.extensions.append(('proc_in', camera_filler)) 
+        robot.proc = Processor(callback)
         function = SourceLogger(robot.proc.get_result, proc_log_name).get
     robot.proc_data = None
     robot.register_data_source('proc', function, proc_data_extension) 
