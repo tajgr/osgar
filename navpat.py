@@ -164,13 +164,6 @@ def run_there_and_back(robot, speed):
     turn_back(robot, speed)
 
 
-def dummy_filler(robot, id, data):
-    pass
-
-def dummy_callback(robot, id, data):
-    pass
-
-
 def navigate_pattern(metalog, viewer=None):
     assert metalog is not None
     can_log_name = metalog.getLog('can')
@@ -188,7 +181,7 @@ def navigate_pattern(metalog, viewer=None):
 
     for sensor_name in ['gps', 'laser', 'camera']:
         attach_sensor(robot, sensor_name, metalog)
-    attach_processor(robot, metalog, dummy_filler, dummy_callback)
+    attach_processor(robot, metalog, None)
 
 #    robot.localization.global_map = [(0.0, 0.0), (13.6, 0.0), (13.6, 4.7), (0.0, 4.7)]  # note not correct!
 #    robot.localization.set_pose((0.0, 2.3, 0.0))

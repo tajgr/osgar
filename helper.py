@@ -36,6 +36,7 @@ def camera_data_extension(robot, id, data):
 def proc_data_extension(robot, id, data):
     if id=='proc':
         robot.proc_data = data
+        print "Received", robot.proc_data
 
 
 def attach_sensor(robot, sensor_name, metalog):
@@ -97,12 +98,12 @@ def camera_filler(robot, id, data):
         robot.proc.push_back(data)
 
 
-def attach_processor(robot, metalog, filler, callback):
+def attach_processor(robot, metalog, callback):
     # TODO assert called at most once
     name = 'proc'
     proc_log_name = metalog.getLog(name)
     print proc_log_name
-    if False:  #metalog.replay:
+    if metalog.replay:
         robot.proc = DummySensor()
         function = SourceLogger(None, proc_log_name).get
     else:
@@ -120,6 +121,7 @@ def detach_all_sensors(robot):
     robot.camera.requestStop()
     robot.laser.requestStop()
     robot.gps.requestStop()
+    robot.proc.requestStop()
 
 # vim: expandtab sw=4 ts=4 
 
