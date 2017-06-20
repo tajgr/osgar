@@ -6,6 +6,7 @@ from gps import GPS
 from gps import DummyGPS as DummySensor  # TODO move to apyros, as mock
 from laser import LaserIP
 from camera import Camera
+from lib.processor import Processor
 from apyros.metalog import MetaLog, disableAsserts
 from apyros.sourcelogger import SourceLogger
 
@@ -30,6 +31,11 @@ def remission_data_extension(robot, id, data):
 def camera_data_extension(robot, id, data):
     if id=='camera':
         robot.camera_data = data
+
+
+def proc_data_extension(robot, id, data):
+    if id=='proc':
+        robot.proc_data = data
 
 
 def attach_sensor(robot, sensor_name, metalog):
@@ -84,6 +90,24 @@ def attach_sensor(robot, sensor_name, metalog):
 
     else:
         assert False, sensor_name  # unsuported sensor
+
+
+def attach_processor(robot, metalog, filler, callback):
+    # TODO assert called at most once
+    name = 'proc'
+    proc_log_name = metalog.getLog(name)
+    print proc_log_name
+    if metalog.replay:
+        robot.proc = DummySensor()
+        function = SourceLogger(None, proc_log_name).get
+    else:
+        robot.extensions.append(('proc_in', filler) 
+        robot.proc = Processor(proc_in_data_extension, callback)
+        function = SourceLogger(robot.proc.get_result, proc_log_name).get
+    robot.proc_data = None
+    robot.register_data_source('proc', function, proc_data_extension) 
+    robot.proc.start()
+
 
 def detach_all_sensors(robot):
     # TODO unregister all modules
