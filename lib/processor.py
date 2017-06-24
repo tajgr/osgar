@@ -12,7 +12,7 @@ class Processor:
         self.processing = None
 
     def get_result(self):
-        if self.processing is None or self.processing.ready():
+        if self.processing is None or not self.processing.ready():
             return None
         ret = self.processing.get()
         self.processing = None
