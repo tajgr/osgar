@@ -100,7 +100,12 @@ def camera_filler(robot, id, data):
 def attach_processor(robot, metalog, callback):
     # TODO assert called at most once
     name = 'proc'
+    robot.proc_data = None
     proc_log_name = metalog.getLog(name)
+    if proc_log_name is None:
+        print "Processor is not logged"
+
+        return False
     print proc_log_name
     if metalog.replay:
         robot.proc = DummySensor()
@@ -109,9 +114,9 @@ def attach_processor(robot, metalog, callback):
         robot.extensions.append(('proc_in', camera_filler)) 
         robot.proc = Processor(callback)
         function = SourceLogger(robot.proc.get_result, proc_log_name).get
-    robot.proc_data = None
     robot.register_data_source('proc', function, proc_data_extension) 
     robot.proc.start()
+    return True
 
 
 def detach_all_sensors(robot):
