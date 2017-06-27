@@ -159,10 +159,10 @@ def run_there_and_back_SCHOOL(robot, speed):
     turn_back(robot, speed)
 
 
-def run_there_and_back(robot, speed):
-    follow_line(robot, Line((0, 2.5), (15.0, 2.5)), speed=speed, timeout=60)
+def run_there_and_back(robot, speed, long_side=15.0):
+    follow_line(robot, Line((0, 2.5), (long_side, 2.5)), speed=speed, timeout=60)
     turn_back(robot, speed)
-    follow_line(robot, Line((15.0, 2.5), (0, 2.5)), speed=speed, timeout=60)
+    follow_line(robot, Line((long_side, 2.5), (0, 2.5)), speed=speed, timeout=60)
     turn_back(robot, speed)
 
 
@@ -205,7 +205,9 @@ def navigate_pattern(metalog, viewer=None):
 #    robot.localization.global_map = [(0.0, 0.0), (13.6, 0.0), (13.6, 4.7), (0.0, 4.7)]  # note not correct!
 #    robot.localization.set_pose((0.0, 2.3, 0.0))
     robot.localization.global_map = [(0.0, 0.0), (15.0, 0.0), (15.0, 5.0), (0.0, 5.0)]  # note not correct!
-    robot.localization.set_pose((0.0, 2.5, 0.0))
+#    robot.localization.global_map = [(0.0, 0.0), (12.0, 0.0), (12.0, 5.0), (0.0, 5.0)]  # note not correct!
+#    robot.localization.set_pose((0.0, 2.5, 0.0))
+    robot.localization.set_pose((-1.3, 2.5, 0.0))    
 #    robot.localization.set_pose((2.5, 0.0, 0.0))
 
     robot.canproxy.stop()
