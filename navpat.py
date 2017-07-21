@@ -20,9 +20,9 @@ import cv2
 from johndeere import emergency_stop_extension, EmergencyStopException
 
 from driver import go_straight, turn, follow_line_gen
-from helper import detach_all_sensors, attach_processor
+from helper import attach_processor
 from line import Line
-from launcher import parse_and_launch, LASER_OFFSET, viewer_data, viewer_scans_append
+from launcher import parse_and_launch, LASER_OFFSET, viewer_scans_append
 
 from lib.landmarks import ConeLandmarkFinder
 from lib.camera_marks import find_cones
@@ -187,14 +187,11 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
     robot.canproxy.stop_turn()
     robot.wait(3.0)
     
-    detach_all_sensors(robot)
 
 
 if __name__ == "__main__":
-    robot, metalog, config, viewer = parse_and_launch()
-    navigate_pattern(robot, metalog, config, viewer)
-    if viewer is not None:
-        viewer(filename=None, posesScanSet=viewer_data)
+    with parse_and_launch() as (robot, metalog, config, viewer):
+        navigate_pattern(robot, metalog, config, viewer)
 
 # vim: expandtab sw=4 ts=4 
 

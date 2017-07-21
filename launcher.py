@@ -6,6 +6,7 @@ import argparse
 import os
 import sys
 import math
+from contextlib import contextmanager
 
 from apyros.metalog import MetaLog, disableAsserts, isMetaLogName
 from apyros.sourcelogger import SourceLogger
@@ -80,12 +81,10 @@ def create_robot(metalog, conf):
     robot = JohnDeere(can=can, localization=loc, config=conf.data.get('johndeere'))
     robot.UPDATE_TIME_FREQUENCY = 20.0  # TODO change internal and integrate setup
 
-    for sensor_name in ['gps', 'laser', 'camera']:
-        attach_sensor(robot, sensor_name, metalog)
-
     return robot
 
 
+@contextmanager
 def parse_and_launch():
     """parse sys.argv arguments and return initialized robot"""
 
@@ -128,10 +127,19 @@ def parse_and_launch():
 
     robot = create_robot(metalog, conf)
 
+    for sensor_name in ['gps', 'laser', 'camera']:
+        attach_sensor(robot, sensor_name, metalog)
+
     if viewer is not None:
         robot.extensions.append(('launcher_viewer', launcher_viewer_extension))
 
-    return robot, metalog, conf, viewer
+    yield robot, metalog, conf, viewer
+
+    detach_all_sensors(robot)
+
+    if viewer is not None:
+        viewer(filename=None, posesScanSet=viewer_data)
+
 
 # vim: expandtab sw=4 ts=4 
 
