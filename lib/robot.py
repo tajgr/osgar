@@ -1,4 +1,6 @@
 
+import ast
+
 class Run:
     def __init__(self):
         self._sources = []
@@ -23,7 +25,6 @@ class Run:
         data = {}
         for source in self._sources:
             data.update(source())
-        # todo replace eval
         self._log.write(str(data)+"\n")
         for ext in self._extensions:
             ext(data)
@@ -48,8 +49,7 @@ class Replay():
 
     def update(self, commands):
         # todo handle commands
-        # todo replace eval
-        data = eval(self._log.readline())
+        data = ast.literal_eval(self._log.readline())
         for ext in self._extensions:
             ext(data)
         return data
