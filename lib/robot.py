@@ -63,18 +63,18 @@ class Run:
 class Replay():
     def __init__(self, filepath):
         self._log = open(filepath, "r")
-        self._extenstions = []
-        self._start = datetime.strptime(self._log.readline(), _fmt)
+        self._extensions = []
+        self._start = datetime.strptime(self._log.readline().strip(), _fmt)
 
     def register_extension(self, ext):
         self._extensions.append(ext)
 
     def update(self, commands):
         "reads timestamp, commands and data from log"
-        self._now = timedelta(ast.literal_eval(self._log.readline()))
-        logged_commands = ast.literal_eval(self._log.readline())
+        self._now = timedelta(*ast.literal_eval(self._log.readline().strip()))
+        logged_commands = ast.literal_eval(self._log.readline().strip())
         assert commands == logged_commands
-        data = ast.literal_eval(self._log.readline())
+        data = ast.literal_eval(self._log.readline().strip())
         for ext in self._extensions:
             ext(data)
         return data

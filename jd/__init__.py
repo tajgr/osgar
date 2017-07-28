@@ -1,8 +1,10 @@
+from contextlib import contextmanager
 from threading import Thread, Lock
 import urllib2
 
 from lib import robot
 
+@contextmanager
 def run():
     r = robot.Run()
     #canproxy = CANProxy(r)
@@ -14,6 +16,7 @@ def run():
 
     robot.stop()
 
+@contextmanager
 def replay(filepath):
     yield robot.Replay(filepath)
 
@@ -42,3 +45,8 @@ class Camera(Thread):
         except IOError, e:
             print e
             return None
+
+if __name__ == "__main__":
+    with replay("test-log.txt") as robot:
+        robot.update({})
+        robot.update({})
