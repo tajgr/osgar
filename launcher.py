@@ -19,10 +19,15 @@ from helper import attach_sensor, detach_all_sensors
 from lib.localization import SimpleOdometry
 from lib.config import Config
 
-from tools.viewer import getCombinedPose  # TODO remove it from global import -> utils??
-
 
 LASER_OFFSET = (1.78, 0.0, 0.39)  # this should be common part?
+
+
+def getCombinedPose( pose, sensorPose ):
+  x = pose[0] + sensorPose[0] * math.cos( pose[2] ) - sensorPose[1] * math.sin( pose[2] )
+  y = pose[1] + sensorPose[0] * math.sin( pose[2] ) + sensorPose[1] * math.cos( pose[2] )
+  heading = sensorPose[2] + pose[2]
+  return (x, y, heading)
 
 
 viewer_data = []
