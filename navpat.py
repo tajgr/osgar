@@ -170,7 +170,6 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
 
     try:
         robot.extensions.append(('detect_near', detect_near_extension))
-        robot.extensions.append(('emergency_stop', emergency_stop_extension))
 
         for i in xrange(10):
 #            run_oval(robot, speed)
@@ -178,9 +177,6 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
 
     except NearObstacle:
         print "Near Exception Raised!"
-        robot.extensions = []  # hack
-    except EmergencyStopException:
-        print "Emergency STOP Exception!"
         robot.extensions = []  # hack
 
     robot.canproxy.stop()

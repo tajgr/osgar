@@ -138,7 +138,16 @@ def parse_and_launch():
     if viewer is not None:
         robot.extensions.append(('launcher_viewer', launcher_viewer_extension))
 
-    yield robot, metalog, conf, viewer
+    try:
+        robot.extensions.append(('emergency_stop', emergency_stop_extension))
+        yield robot, metalog, conf, viewer
+    except EmergencyStopException:
+        print "Emergency STOP Exception!"
+        robot.extensions = []  # hack
+
+    robot.canproxy.stop()
+    robot.canproxy.stop_turn()
+    robot.wait(3.0)
 
     detach_all_sensors(robot)
 
