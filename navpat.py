@@ -22,12 +22,10 @@ from johndeere import emergency_stop_extension, EmergencyStopException
 from driver import go_straight, turn, follow_line_gen
 from helper import attach_processor
 from line import Line
-from launcher import parse_and_launch, LASER_OFFSET, viewer_scans_append
+from launcher import parse_and_launch, LASER_OFFSET, viewer_scans_append, getCombinedPose
 
 from lib.landmarks import ConeLandmarkFinder
 from lib.camera_marks import find_cones
-
-from tools.viewer import getCombinedPose  # TODO remove it from global import -> utils??
 
 
 class NearObstacle:
