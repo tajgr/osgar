@@ -11,6 +11,9 @@ import socket
 import time
 from threading import Thread,Event,Lock
 
+from camera import timeName  # hack
+import struct
+
 
 # TIM310
 #import usb.core
@@ -130,16 +133,19 @@ class LaserUSB( Laser ):
   def configureScanDataOutput( self ):
     pass
 
+
 class LaserIP( Laser ):
   def __init__( self, **kw ):
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.socket.connect((HOST, PORT))
+    self.raw_log = open(timeName('logs/laserraw_', '.bin'), 'wb')
     self._buffer = ""
     Laser.__init__( self, **kw )
     self.sendCmd( 'sMN SetAccessMode 03 F4724744' )
 
   def __del__( self ):
     self.socket.close()
+    self.raw_log.close()
 
   def receive( self ):
     data = self._buffer
@@ -148,6 +154,10 @@ class LaserIP( Laser ):
       if pos >= 0:
         break
       data = self.socket.recv(1024)
+      if len(data) > 0:
+        self.raw_log.write(struct.pack('HH', 1, len(data)))  # 1 = input
+        self.raw_log.write(data)
+        self.raw_log.flush()
       self._buffer += data
 
     pos = self._buffer.find(ETX)
@@ -157,7 +167,11 @@ class LaserIP( Laser ):
     return data
 
   def sendCmd( self, cmd ):
-    self.socket.send( STX + cmd + ETX)
+    data = STX + cmd + ETX
+    self.socket.send(data)
+    self.raw_log.write(struct.pack('HH', 0, len(data)))
+    self.raw_log.write(data)
+    self.raw_log.flush()
     return self.receive()
 
   def internalScan( self ):
