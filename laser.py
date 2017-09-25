@@ -134,11 +134,22 @@ class LaserUSB( Laser ):
     pass
 
 
+def write_timestamp(f):
+  """write time.time() in sec/frac into a binary file"""
+  t = time.time()
+  sec = int(t)
+  frac = int(0x10000*(t-sec))
+  f.write(struct.pack('IH', sec, frac))
+
+
 class LaserIP( Laser ):
   def __init__( self, **kw ):
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.socket.connect((HOST, PORT))
     self.raw_log = open(timeName('logs/laserraw_', '.bin'), 'wb')
+    self.raw_log.write(struct.pack('HH', 0xF472, 2))  # magic number + version 2 with timestamps
+    write_timestamp(self.raw_log)
+    self.raw_log.flush()
     self._buffer = ""
     Laser.__init__( self, **kw )
     self.sendCmd( 'sMN SetAccessMode 03 F4724744' )
@@ -155,6 +166,7 @@ class LaserIP( Laser ):
         break
       data = self.socket.recv(1024)
       if len(data) > 0:
+        write_timestamp(self.raw_log)
         self.raw_log.write(struct.pack('HH', 1, len(data)))  # 1 = input
         self.raw_log.write(data)
         self.raw_log.flush()
@@ -169,6 +181,7 @@ class LaserIP( Laser ):
   def sendCmd( self, cmd ):
     data = STX + cmd + ETX
     self.socket.send(data)
+    write_timestamp(self.raw_log)
     self.raw_log.write(struct.pack('HH', 0, len(data)))
     self.raw_log.write(data)
     self.raw_log.flush()
