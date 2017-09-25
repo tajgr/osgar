@@ -158,6 +158,18 @@ def run_there_and_back(robot, long_side, speed):
     turn_back(robot, speed)
 
 
+def run_fill_pattern(robot, long_side, speed):
+    STEP = 1.0
+    RAD1 = 2.0
+    RAD2 = RAD1 + STEP/2.0
+    for i in xrange(10):
+        Y = i * STEP
+        follow_line(robot, Line((RAD1, Y), (long_side-RAD2, Y)), speed=speed, timeout=60)
+        turn(robot, math.radians(180), radius=RAD2, speed=speed, with_stop=True, timeout=60.0)
+        follow_line(robot, Line((long_side-RAD2, Y+2*RAD2), (RAD1, Y+2*RAD2)), speed=speed, timeout=60)
+        turn(robot, math.radians(180), radius=RAD1, speed=speed, with_stop=True, timeout=60.0)
+
+
 def image_callback(data):
     assert len(data) > 1
     filename = data[0]
@@ -186,7 +198,8 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
 
         for i in xrange(10):
 #            run_oval(robot, speed)
-            run_there_and_back(robot, long_side, speed)
+#            run_there_and_back(robot, long_side, speed)
+            run_fill_pattern(robot, long_side, speed)
 
     except NearObstacle:
         print "Near Exception Raised!"
