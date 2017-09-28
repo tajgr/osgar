@@ -146,7 +146,7 @@ class LaserIP( Laser ):
   def __init__( self, **kw ):
     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.socket.connect((HOST, PORT))
-    self.raw_log = open(timeName('logs/laserraw_', '.bin'), 'wb')
+    self.raw_log = open(timeName('logs/laserraw_', 'bin'), 'wb')
     self.raw_log.write(struct.pack('HH', 0xF472, 2))  # magic number + version 2 with timestamps
     write_timestamp(self.raw_log)
     self.raw_log.flush()
