@@ -77,7 +77,7 @@ def detect_near_extension(robot, id, data):
     
     elif last_laser_update_time + 1.0 < robot.time:
         print "NO LASER!!!"
-        #raise NoLaserData()
+        raise NoLaserData()
 
 
 def navpat_viewer_extension(robot, id, data):
