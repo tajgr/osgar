@@ -159,8 +159,8 @@ def run_there_and_back(robot, long_side, speed):
     turn_back(robot, speed)
 
 
-def run_fill_pattern(robot, long_side, speed):
-    STEP = 1.0
+def run_fill_pattern(robot, long_side, speed, conf):
+    STEP = conf['step']
     RAD1 = 2.0
     RAD2 = RAD1 + STEP/2.0
     SAFETY = 2.0
@@ -200,8 +200,12 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
 
         for i in xrange(10):
 #            run_oval(robot, speed)
-#            run_there_and_back(robot, long_side, speed)
-            run_fill_pattern(robot, long_side, speed)
+            if conf is None:
+                run_there_and_back(robot, long_side, speed)
+            elif conf['pattern'] == 'fill':
+                run_fill_pattern(robot, long_side, speed, conf)
+            else:
+                assert False, conf['pattern']  # unknown pattern
 
     except NearObstacle:
         print "Near Exception Raised!"
@@ -218,6 +222,7 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
 
 if __name__ == "__main__":
     with parse_and_launch() as (robot, metalog, config, viewer):
+        config = config.data.get('navpat')  # TODO move this to launcher
         navigate_pattern(robot, metalog, config, viewer)
 
 # vim: expandtab sw=4 ts=4 
