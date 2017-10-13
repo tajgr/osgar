@@ -16,6 +16,7 @@ optional arguments:
 import math
 import numpy as np
 import cv2
+import itertools
 
 from johndeere import emergency_stop_extension, EmergencyStopException
 
@@ -85,6 +86,7 @@ def navpat_viewer_extension(robot, id, data):
         x, y, heading = robot.localization.pose()
         laser_pose = x + math.cos(heading)*LASER_OFFSET[0], y + math.sin(heading)*LASER_OFFSET[0], heading
 
+        selected = []
         for raw_angle, raw_dist, raw_width in prev_cones:
             dist = raw_dist/1000.0
             angle = math.radians(raw_angle/2 - 135)
@@ -94,12 +96,18 @@ def navpat_viewer_extension(robot, id, data):
             for cone_xy, cone_color in zip(robot.localization.global_map, colors):
                 if math.hypot(xx-cone_xy[0], yy-cone_xy[1]) < 2.0:
                     color = cone_color
+                    selected.append( (raw_angle, raw_dist) )
 
             width = raw_width * math.radians(0.5) * raw_dist/1000.0  # in meters
             print "width", width
             if width < 0.05 or width > 0.5:
                 color = (128, 128, 128)  # gray
             viewer_scans_append( ( (xx, yy, 0), -1.5, color) ) # color param
+
+        if len(selected) >= 2:
+            finder = ConeLandmarkFinder()
+            for a, b in itertools.combinations(selected, 2):
+                print("selected\t%f\t%f\n" % (robot.time, finder.pair_distance(a, b)))
 
 
 def follow_line(robot, line, speed=None, timeout=None):
