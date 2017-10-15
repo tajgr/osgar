@@ -93,10 +93,11 @@ def navpat_viewer_extension(robot, id, data):
             xx, yy, _ = getCombinedPose(laser_pose, (math.cos(angle)*dist, math.sin(angle)*dist, 0))
             color = (0xFF, 0x80, 0)
             colors = [(0xFF, 0xFF, 0xFF), (0xFF, 0, 0), (0, 0xFF, 0), (0, 0, 0xFF)]
-            for cone_xy, cone_color in zip(robot.localization.global_map, colors):
+            for i, cone in enumerate(zip(robot.localization.global_map, colors)):
+                cone_xy, cone_color = cone
                 if math.hypot(xx-cone_xy[0], yy-cone_xy[1]) < 2.0:
                     color = cone_color
-                    selected.append( (raw_angle, raw_dist) )
+                    selected.append( (i, (raw_angle, raw_dist)) )
 
             width = raw_width * math.radians(0.5) * raw_dist/1000.0  # in meters
             print "width", width
@@ -106,8 +107,8 @@ def navpat_viewer_extension(robot, id, data):
 
         if len(selected) >= 2:
             finder = ConeLandmarkFinder()
-            for a, b in itertools.combinations(selected, 2):
-                print("selected\t%f\t%f\n" % (robot.time, finder.pair_distance(a, b)))
+            for a, b in itertools.combinations(sorted(selected), 2):
+                print("selected\t%f\t%d\t%d\t%f\n" % (robot.time, a[0], b[0], finder.pair_distance(a[1], b[1])))
 
 
 def follow_line(robot, line, speed=None, timeout=None):
