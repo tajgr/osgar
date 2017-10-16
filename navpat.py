@@ -134,6 +134,37 @@ def turn_back(robot, speed):
     turn(robot, math.radians(-60), radius=2.0, speed=speed, with_stop=True, timeout=30.0)  # right again
 
 
+def nav2cone(robot, speed):
+    """navigate to cone, which should be in front of you"""
+    for i in xrange(10):
+        robot.update()
+        cones = prev_cones  # TODO use robot.prev_cones instead of global variable
+        print "Cones:", cones
+        if len(cones) == 0:
+            # well, shold we move?? maybe based on history?
+            robot.stop()
+        else:
+            # find cone in front of the robot
+            cone = cones[0]
+            center_raw = 270  # 270deg with 0.5deg resolution
+            for c in cones[1:]:
+                if abs(c[0] - center_raw) < abs(cone[0] - center_raw):
+                    cone = c
+
+            acceptable_angle_raw = 45*2  # 45deg with 0.5 resolution
+            if abs(cone[0] - center_raw) < acceptable_angle_raw:
+                robot.set_desired_steering( math.radians(0.5*(cone[0] - center_raw)) )
+                robot.set_desired_speed(speed)
+            else:
+                robot.stop()
+
+
+def run_mapping(robot, speed):
+    for i in xrange(4):
+        nav2cone(robot, speed)
+        turn(robot, math.radians(90), radius=2.0, speed=speed, with_stop=True, timeout=60.0)
+
+
 def run_oval(robot, speed):
     robot.set_desired_speed(speed)
     follow_line(robot, Line((0, 0), (4.0, 0)))
@@ -194,7 +225,10 @@ def image_callback(data):
 def navigate_pattern(robot, metalog, conf, viewer=None):
     attach_processor(robot, metalog, image_callback)
 
-    long_side = max([x for x, y in robot.localization.global_map])
+    if len(robot.localization.global_map) > 0:
+        long_side = max([x for x, y in robot.localization.global_map])
+    else:
+        long_size = None
 
     robot.canproxy.stop()
     robot.canproxy.set_turn_raw(0)
@@ -213,6 +247,8 @@ def navigate_pattern(robot, metalog, conf, viewer=None):
                 run_there_and_back(robot, long_side, speed)
             elif conf['pattern'] == 'fill':
                 run_fill_pattern(robot, long_side, speed, conf)
+            elif conf['pattern'] == 'mapping':
+                run_mapping(robot, speed)
             else:
                 assert False, conf['pattern']  # unknown pattern
 
