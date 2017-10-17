@@ -136,7 +136,8 @@ def turn_back(robot, speed):
 
 def nav2cone(robot, speed):
     """navigate to cone, which should be in front of you"""
-    for i in xrange(10):
+    cone_dist = None
+    while cone_dist is None or cone_dist > 2.0:  # TODO add also timeout 
         robot.update()
         cones = prev_cones  # TODO use robot.prev_cones instead of global variable
         print "Cones:", cones
@@ -150,6 +151,7 @@ def nav2cone(robot, speed):
             for c in cones[1:]:
                 if abs(c[0] - center_raw) < abs(cone[0] - center_raw):
                     cone = c
+            cone_dist = cone[1]/1000.0
 
             acceptable_angle_raw = 45*2  # 45deg with 0.5 resolution
             if abs(cone[0] - center_raw) < acceptable_angle_raw:
