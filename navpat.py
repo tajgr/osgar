@@ -164,7 +164,7 @@ def nav2cone(robot, speed):
 def run_mapping(robot, speed):
     for i in xrange(4):
         nav2cone(robot, speed)
-        turn(robot, math.radians(90), radius=2.0, speed=speed, with_stop=True, timeout=60.0)
+        turn(robot, math.radians(75), radius=2.0+1.5, speed=speed, with_stop=False, timeout=60.0)
 
 
 def run_oval(robot, speed):
