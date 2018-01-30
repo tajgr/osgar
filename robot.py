@@ -72,6 +72,7 @@ if __name__ == "__main__":
     elif args.command == 'run':
         log = LogWriter(prefix='robot-test-', note=str(sys.argv))
         config = Config.load(args.config)
+        log.write(0, bytes(str(config.data), 'ascii'))  # write configuration
         robot = Robot(config=config.data['robot'], logger=log)
         robot.start()
         for i in range(1000):
