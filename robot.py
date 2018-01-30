@@ -3,6 +3,7 @@
 """
 
 import argparse
+import sys
 from queue import Queue
 
 from lib.logger import LogWriter, LogReader
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     if args.command == 'replay':
         pass  # TODO
     elif args.command == 'run':
-        log = LogWriter(prefix='robot-test-')
+        log = LogWriter(prefix='robot-test-', note=str(sys.argv))
         config = Config.load(args.config)
         robot = Robot(config=config.data['robot'], logger=log)
         robot.start()
