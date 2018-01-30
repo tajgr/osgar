@@ -3,13 +3,13 @@
   "robot": {
     "drivers": [ "spider", "gps", "imu" ],
     "spider": {
-        "port": "/dev/ttyUSB0", "speed": 4800, "stream_id_in": 1, "stream_id_in": 2
+        "port": "/dev/ttyS0", "speed": 115200, "stream_id_in": 1, "stream_id_in": 2
     },
     "gps": {
-        "port": "/dev/ttyUSB0", "speed": 4800, "stream_id": 3
+        "port": "/dev/ttyACM0", "speed": 115200, "stream_id": 3
     },
     "imu": {
-        "port": "/dev/ttyUSB2", "speed": 115200, "stream_id": 4
+        "port": "/dev/ttyUSB0", "speed": 115200, "stream_id": 4
     },
     "stream_id": 5
   }
