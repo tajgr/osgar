@@ -24,11 +24,6 @@ class Spider(Thread):
         self.should_run = Event()
         self.should_run.set()
 
-        if 'port' in config:
-            self.com = serial.Serial(config['port'], config['speed'])
-            self.com.timeout = 0.01  # expects updates < 100Hz
-        else:
-            self.com = None
         self.logger = logger
         self.stream_id_in = config['stream_id_in']
         self.stream_id_out = config['stream_id_out']
@@ -37,10 +32,33 @@ class Spider(Thread):
         self.output = output
         self.name = name
 
+        if 'port' in config:
+            self.com = serial.Serial(config['port'], config['speed'], dsrdtr=1)
+            self.com.setRTS()
+            self.com.setDTR(0)
+            self.com.timeout = 0.01  # expects updates < 100Hz
+
+            for i in range(10):
+                data = self.com.read(1024)
+                self.logger.write(self.stream_id_in, data)
+
+            data = b'\xFF'*10
+            self.logger.write(self.stream_id_out, data)
+            self.com.write(data)
+            data = b'\xFE\x57'  # CAN_SPEED_1MB
+            self.logger.write(self.stream_id_out, data)
+            self.com.write(data)
+            data = b'\xFE\x31'  # start bridge
+            self.logger.write(self.stream_id_out, data)
+            self.com.write(data)
+        else:
+            self.com = None
+
+
     @staticmethod
     def split_buffer(data):
         # TODO split data by CAN bridge packets
-        assert False
+        return b'', data
         start = data.find(b'$')
         if start < 0:
             return data, b''
@@ -62,7 +80,7 @@ class Spider(Thread):
         while self.should_run.isSet():
             data = self.com.read(1024)
             if len(data) > 0:
-                self.logger.write(self.stream_id, data)
+                self.logger.write(self.stream_id_in, data)
                 self.process(data)
 
     def request_stop(self):
