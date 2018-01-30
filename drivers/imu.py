@@ -20,9 +20,9 @@ from drivers.gps import checksum
 
 
 def parse_line(line):
-    assert line.startswith('$VNYMR'), line
-    assert '*' in line, line
-    s = line.split('*')[0].split(',')
+    assert line.startswith(b'$VNYMR'), line
+    assert b'*' in line, line
+    s = line.split(b'*')[0].split(b',')
     assert len(s) == 13, s
     arr = [float(x) for x in s[1:]]
     return arr[:3], arr[3:6], arr[6:9], arr[9:]
@@ -62,7 +62,7 @@ class IMU(Thread):
     def process(self, data):
         self.buf, line = self.split_buffer(self.buf + data)
         if line.startswith(b'$VNYMR'):
-            result = self.parse_line(line)
+            result = parse_line(line)
             if self.output:
                 self.output(self.name, result)
             return result
