@@ -10,6 +10,7 @@ from lib.logger import LogWriter, LogReader
 from lib.config import Config
 from drivers.gps import GPS
 from drivers.imu import IMU
+from drivers.spider import Spider
 
 
 class Robot:
@@ -24,6 +25,9 @@ class Robot:
             elif driver_name == 'imu':
                 driver = IMU(config[driver_name], logger, output=self.input_gate,
                              name=driver_name)
+            elif driver_name == 'spider':
+                driver = Spider(config[driver_name], logger, output=self.input_gate,
+                                name=driver_name)
             else:
                 assert False, driver_name  # unsupported driver
             self.drivers.append(driver)
