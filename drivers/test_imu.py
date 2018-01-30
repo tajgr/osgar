@@ -1,6 +1,6 @@
 import unittest
 
-from imu import parse_line
+from drivers.imu import parse_line
 
 class IMUTest(unittest.TestCase):
 
