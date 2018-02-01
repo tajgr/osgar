@@ -16,10 +16,13 @@ class Robot:
         self.logger = logger
         self.stream_id = config['stream_id']
         self.drivers = []
+        self.executors = []
         for driver_name in config['drivers']:
             driver = all_drivers[driver_name](config[driver_name], logger,
                                               output=self.input_gate, name=driver_name)
             self.drivers.append(driver)
+            if 'executors' in config and driver_name in config['executors']:
+                self.executors.append(driver)
         self.queue = Queue()
 
     def start(self):
@@ -31,6 +34,8 @@ class Robot:
             data = self.queue.get(timeout=timeout)
             if 'gps' in data:
                 print(data)
+            return data
+        return None
 
     def finish(self):
         for driver in self.drivers:
@@ -43,6 +48,11 @@ class Robot:
             print(name, data)
         dt = self.logger.write(self.stream_id, bytes(str((name, data)),'ascii'))  # TODO single or mutiple streams?
         self.queue.put((dt, name, data))
+
+    def execute(self, msg_id, data):
+        # TODO log data
+        for driver in self.executors:
+            pass  # driver.send(data)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test robot configuration')
