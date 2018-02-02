@@ -1,6 +1,6 @@
 import unittest
 
-from drivers.spider import Spider
+from drivers.spider import Spider, CAN_packet
 
 class SpiderTest(unittest.TestCase):
 
@@ -13,3 +13,5 @@ class SpiderTest(unittest.TestCase):
         data = b'0@h\x9e\x01i\x01\xf7\x01\x18\x00'
         self.assertEqual(Spider.split_buffer(data), (b'h\x9e\x01i\x01\xf7\x01\x18\x00', b'0@'))
 
+    def test_can_packet(self):
+        self.assertEqual(CAN_packet(0x400, [0, 0]), b'\x80\x02\x00\x00')

@@ -15,6 +15,7 @@ class RoboOrienteering2018:
     def __init__(self, robot):
         self.robot = robot
         self.last_position = None
+        self.cmd = (0, 0)
 
     def update(self):
         packet = self.robot.update()
@@ -25,6 +26,9 @@ class RoboOrienteering2018:
                 self.last_position = data
             elif msg_id == 'spider':  # i.e. I can drive only spider??
                 self.robot.execute('spider', data)  # just echo it
+
+    def set_speed(self, speed, angular_speed):
+        self.cmd = (speed, angular_speed)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='RoboOrienteering 2018')
@@ -47,7 +51,13 @@ if __name__ == "__main__":
         robot = Robot(config=config.data['robot'], logger=log)
         robot.start()
         game = RoboOrienteering2018(robot)
+        for i in range(10):
+            game.update()
+        game.set_speed(10, 0)
         for i in range(100):
+            game.update()
+        game.set_speed(0, 0)
+        for i in range(10):
             game.update()
         robot.finish()
     else:

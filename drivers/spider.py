@@ -18,6 +18,11 @@ from threading import Thread, Event
 from lib.logger import LogWriter, LogReader
 
 
+def CAN_packet(msg_id, data):
+    header = [(msg_id>>3) & 0xff, (msg_id<<5) & 0xe0 | (len(data) & 0xf)]
+    return bytes(header + data)
+
+
 class Spider(Thread):
     def __init__(self, config, logger, output, name='spider'):
         Thread.__init__(self)
@@ -56,6 +61,9 @@ class Spider(Thread):
             self.com = None
 
         self.status_word = None  # not defined yet
+        self.speed_cmd = [0, 0]
+        self.status_cmd = 3
+        self.alive = 0  # toggle with 128
 
     @staticmethod
     def split_buffer(data):
@@ -97,14 +105,20 @@ class Spider(Thread):
 
     def send(self, data):
         if True:  # packet type??
-            go = data
-            if go > 0:
-                packet = b' '  # TODO GO
+            speed, angular_speed = data
+            if speed > 0:
+                packet = CAN_packet(0x401, [0x80 + 127, 0])
             else:
-                packet = b' '  # TODO STOP packet
+                packet = CAN_packet(0x401, [0, 0])  # STOP packet
             self.logger.write(self.stream_id_out, packet)
             self.com.write(packet)
-            # TODO alive
+
+            # alive
+            packet = CAN_packet(0x400, [self.status_cmd, self.alive])
+            self.logger.write(self.stream_id_out, packet)
+            self.com.write(packet)
+            self.alive = 128 - self.alive
+
 
 if __name__ == "__main__":
     import argparse
