@@ -2,6 +2,7 @@
   "version": 2,
   "robot": {
     "drivers": [ "spider", "gps", "imu" ],
+    "executors": [ "spider" ],
     "spider": {
         "port": "/dev/ttyS0", "speed": 115200, "stream_id_in": 1, "stream_id_out": 2
     },
@@ -11,6 +12,7 @@
     "imu": {
         "port": "/dev/ttyUSB0", "speed": 115200, "stream_id": 4
     },
-    "stream_id": 5
+    "stream_id": 5,
+    "stream_id_out": 6
   }
 }

@@ -15,6 +15,7 @@ class Robot:
     def __init__(self, config, logger):
         self.logger = logger
         self.stream_id = config['stream_id']
+        self.stream_id_out = config.get('stream_id_out', None)
         self.drivers = []
         self.executors = []
         for driver_name in config['drivers']:
@@ -50,9 +51,10 @@ class Robot:
         self.queue.put((dt, name, data))
 
     def execute(self, msg_id, data):
-        # TODO log data
+        assert self.stream_id_out is not None
+        dt = self.logger.write(self.stream_id_out, bytes(str((msg_id, data)),'ascii'))
         for driver in self.executors:
-            pass  # driver.send(data)
+            driver.send(data)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test robot configuration')

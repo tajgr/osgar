@@ -95,6 +95,16 @@ class Spider(Thread):
     def request_stop(self):
         self.should_run.clear()
 
+    def send(self, data):
+        if True:  # packet type??
+            go = data
+            if go > 0:
+                packet = b' '  # TODO GO
+            else:
+                packet = b' '  # TODO STOP packet
+            self.logger.write(self.stream_id_out, packet)
+            self.com.write(packet)
+            # TODO alive
 
 if __name__ == "__main__":
     import argparse
