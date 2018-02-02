@@ -20,7 +20,7 @@ class RoboOrienteering2018:
         packet = self.robot.update()
         if packet is not None:
             print('RO', packet)
-            msg_id, data = packet
+            timestamp, msg_id, data = packet
             if msg_id == 'gps':
                 self.last_position = data
             elif msg_id == 'spider':  # i.e. I can drive only spider??
