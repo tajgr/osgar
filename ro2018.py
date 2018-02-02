@@ -25,7 +25,7 @@ class RoboOrienteering2018:
             if msg_id == 'gps':
                 self.last_position = data
             elif msg_id == 'spider':  # i.e. I can drive only spider??
-                self.robot.execute('spider', data)  # just echo it
+                self.robot.execute('spider', self.cmd)
 
     def set_speed(self, speed, angular_speed):
         self.cmd = (speed, angular_speed)
