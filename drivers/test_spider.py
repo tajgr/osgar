@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import MagicMock
 
 from drivers.spider import Spider, CAN_packet
+from lib.logger import LogWriter
 
 class SpiderTest(unittest.TestCase):
 
@@ -15,3 +17,11 @@ class SpiderTest(unittest.TestCase):
 
     def test_can_packet(self):
         self.assertEqual(CAN_packet(0x400, [0, 0]), b'\x80\x02\x00\x00')
+
+    def test_uninitialized_can_bridge(self):
+        logger = MagicMock()
+        spider = Spider(config={'stream_id_in':1, 'stream_id_out':2}, logger=logger, output=None)
+        spider.send((0, 0))
+        logger.write.assert_called_once_with(0, 'ERROR: CAN bridge not initialized yet! [(0, 0)]')
+
+# vim: expandtab sw=4 ts=4

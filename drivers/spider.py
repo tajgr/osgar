@@ -18,6 +18,12 @@ from threading import Thread, Event
 from lib.logger import LogWriter, LogReader
 
 
+CAN_BRIDGE_READY = b'\xfe\x10'  # CAN bridge is ready to accept configuration commands
+CAN_BRIDGE_SYNC = b'\xFF'*10    # CAN bridge synchronization bytes
+CAN_SPEED_1MB = b'\xfe\x57'     # configure CAN bridge to communicate on 1Mb CAN network
+CAN_BRIDGE_START = b'\xfe\x31'  # start bridge
+
+
 def CAN_packet(msg_id, data):
     header = [(msg_id>>3) & 0xff, (msg_id<<5) & 0xe0 | (len(data) & 0xf)]
     return bytes(header + data)
@@ -43,23 +49,10 @@ class Spider(Thread):
             self.com.setRTS()
             self.com.setDTR(0)
             self.com.timeout = 0.01  # expects updates < 100Hz
-
-            for i in range(10):
-                data = self.com.read(1024)
-                self.logger.write(self.stream_id_in, data)
-
-            data = b'\xFF'*10
-            self.logger.write(self.stream_id_out, data)
-            self.com.write(data)
-            data = b'\xFE\x57'  # CAN_SPEED_1MB
-            self.logger.write(self.stream_id_out, data)
-            self.com.write(data)
-            data = b'\xFE\x31'  # start bridge
-            self.logger.write(self.stream_id_out, data)
-            self.com.write(data)
         else:
             self.com = None
 
+        self.can_bridge_initialized = False
         self.status_word = None  # not defined yet
         self.speed_cmd = [0, 0]
         self.status_cmd = 3
@@ -83,6 +76,20 @@ class Spider(Thread):
 
     def process(self, data):
         self.buf, packet = self.split_buffer(self.buf + data)
+
+        if packet == CAN_BRIDGE_READY:
+            data = CAN_BRIDGE_SYNC
+            self.logger.write(self.stream_id_out, data)
+            self.com.write(data)
+            data = CAN_SPEED_1MB
+            self.logger.write(self.stream_id_out, data)
+            self.com.write(data)
+            data = CAN_BRIDGE_START
+            self.logger.write(self.stream_id_out, data)
+            self.com.write(data)
+            self.can_bridge_initialized = True
+            return None
+
         if len(packet) >= 2:
             msg_id = ((packet[0]) << 3) | (((packet[1]) >> 5) & 0x1f)
             if msg_id == 0x200:
@@ -103,7 +110,7 @@ class Spider(Thread):
         self.should_run.clear()
 
     def send(self, data):
-        if True:  # packet type??
+        if self.can_bridge_initialized:
             speed, angular_speed = data
             if speed > 0:
                 packet = CAN_packet(0x401, [0x80 + 127, 0])
@@ -117,6 +124,9 @@ class Spider(Thread):
             self.logger.write(self.stream_id_out, packet)
             self.com.write(packet)
             self.alive = 128 - self.alive
+        else:
+            print('CAN bridge not initialized yet!')
+            self.logger.write(0, 'ERROR: CAN bridge not initialized yet! [%s]' % str(data))
 
 
 if __name__ == "__main__":
