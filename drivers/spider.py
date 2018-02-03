@@ -133,6 +133,6 @@ if __name__ == "__main__":
         for timestamp, stream_id, data in log.read_gen(args.stream):
             ret = spider.process(data)
             if ret is not None:
-                print(ret)
+                print(hex(ret))
 
 # vim: expandtab sw=4 ts=4
