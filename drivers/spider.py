@@ -68,8 +68,7 @@ class Spider(Thread):
     @staticmethod
     def split_buffer(data):
         # skip 0xFF prefix bytes (CAN bridge control bytes)
-        while len(data) > 0 and data[0] == 0xFF:
-            data = data[1:]
+        data = data.lstrip(b'\xff')
 
         if len(data) >= 2:
             # see https://en.wikipedia.org/wiki/CAN_bus
