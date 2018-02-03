@@ -13,16 +13,21 @@ from robot import Robot
 
 class LogRobot:
     def __init__(self, logger, stream_id_in, stream_id_out):
-        self.log_in = logger.read_gen(stream_id_in)
+        self.log_read = logger.read_gen(multiple_streams=[stream_id_in, stream_id_out])
+        self.stream_id_in = stream_id_in
+        self.stream_id_out = stream_id_out
 
     def update(self):
-        dt, stream, packet = next(self.log_in)
+        dt, stream, packet = next(self.log_read)
+        assert stream == self.stream_id_in, (stream, self.stream_id_in)
         msg_id, data = eval(packet)  # TODO replace by safe version!
         return dt, msg_id, data
 
     def execute(self, msg_id, data):
-        pass
-
+        dt, stream, packet = next(self.log_read)
+        assert stream == self.stream_id_out, (stream, self.stream_id_out)
+        log_msg_id, log_data = eval(packet)  # TODO replace by safe version!
+        assert (msg_id, data) == (log_msg_id, log_data), ((msg_id, data), (log_msg_id, log_data))
 
 class RoboOrienteering2018:
     def __init__(self, robot):
