@@ -11,6 +11,19 @@ from drivers import all_drivers
 from robot import Robot
 
 
+class LogRobot:
+    def __init__(self, logger, stream_id_in, stream_id_out):
+        self.log_in = logger.read_gen(stream_id_in)
+
+    def update(self):
+        dt, stream, packet = next(self.log_in)
+        msg_id, data = eval(packet)  # TODO replace by safe version!
+        return dt, msg_id, data
+
+    def execute(self, msg_id, data):
+        pass
+
+
 class RoboOrienteering2018:
     def __init__(self, robot):
         self.robot = robot
@@ -30,6 +43,17 @@ class RoboOrienteering2018:
     def set_speed(self, speed, angular_speed):
         self.cmd = (speed, angular_speed)
 
+    def play(self):
+        for i in range(10):
+            self.update()
+        self.set_speed(10, 0)
+        for i in range(100):
+            self.update()
+        self.set_speed(0, 0)
+        for i in range(10):
+            self.update()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='RoboOrienteering 2018')
     subparsers = parser.add_subparsers(help='sub-command help', dest='command')
@@ -43,7 +67,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.command == 'replay':
-        pass  # TODO
+        log = LogReader(args.logfile)
+        print(next(log.read_gen(0))[-1])  # old arguments
+        config_str = next(log.read_gen(0))[-1]
+        config = eval(config_str)  # TODO what was the safe version of eval?!
+        robot = LogRobot(log, config['robot']['stream_id'], config['robot']['stream_id_out'])
+        game = RoboOrienteering2018(robot)
+        game.play()
+
     elif args.command == 'run':
         log = LogWriter(prefix='ro2018-', note=str(sys.argv))
         config = Config.load(args.config)
@@ -51,14 +82,7 @@ if __name__ == "__main__":
         robot = Robot(config=config.data['robot'], logger=log)
         robot.start()
         game = RoboOrienteering2018(robot)
-        for i in range(10):
-            game.update()
-        game.set_speed(10, 0)
-        for i in range(100):
-            game.update()
-        game.set_speed(0, 0)
-        for i in range(10):
-            game.update()
+        game.play()
         robot.finish()
     else:
         assert False, args.command  # unsupported command
