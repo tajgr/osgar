@@ -54,6 +54,8 @@ class Spider(Thread):
 
         self.can_bridge_initialized = False
         self.status_word = None  # not defined yet
+        self.wheel_angles = None  # four wheel angles as received via CAN
+        self.zero_steering = None  # zero position of all 4 wheels
         self.speed_cmd = [0, 0]
         self.status_cmd = 3
         self.alive = 0  # toggle with 128
@@ -73,6 +75,15 @@ class Spider(Thread):
             elif len(data) >= 2 + size:
                 return data[2+size:], data[:2+size]
         return data, b''  # no complete packet available yet
+
+    @staticmethod
+    def fix_range(value):
+        "into <-256, +256) interval"
+        if value < -256:
+            value += 512
+        elif value >= 256:
+            value -= 512
+        return value
 
     def process(self, data, replay_only=False, verbose=False):
         self.buf, packet = self.split_buffer(self.buf + data)
@@ -100,6 +111,18 @@ class Spider(Thread):
                 if self.output:
                     self.output(self.name, self.status_word)
                 return self.status_word
+            elif msg_id == 0x201:
+                assert len(packet) == 2 + 8, packet
+                self.wheel_angles = struct.unpack_from('HHHH', packet, 2)
+                if verbose and self.zero_steering is not None:
+                    print('Wheels:',
+                          [Spider.fix_range(a - b) for a, b in zip(self.wheel_angles, self.zero_steering)])
+            elif msg_id == 0x203:
+                assert len(packet) == 2 + 8, packet
+                prev = self.zero_steering
+                self.zero_steering = struct.unpack_from('HHHH', packet, 2)
+                # make sure that calibration did not change during program run
+                assert prev is None or prev == self.zero_steering, (prev, self.zero_steering)
 
     def run(self):
         while self.should_run.isSet():
