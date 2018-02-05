@@ -74,7 +74,7 @@ class Spider(Thread):
                 return data[2+size:], data[:2+size]
         return data, b''  # no complete packet available yet
 
-    def process(self, data, replay_only=False):
+    def process(self, data, replay_only=False, verbose=False):
         self.buf, packet = self.split_buffer(self.buf + data)
 
         if packet == CAN_BRIDGE_READY and not replay_only:
@@ -92,6 +92,8 @@ class Spider(Thread):
 
         if len(packet) >= 2:
             msg_id = ((packet[0]) << 3) | (((packet[1]) >> 5) & 0x1f)
+            if verbose:
+                print(hex(msg_id), packet[2:])
             if msg_id == 0x200:
                 self.status_word = struct.unpack('H', packet[2:])[0]
 
@@ -135,13 +137,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parse Spider CAN packets')
     parser.add_argument('logfile', help='log filename')
     parser.add_argument('--stream', help='stream ID', type=int, default=None)
+    parser.add_argument('--verbose', '-v', dest='verbose', action='store_true',
+                        help='verbose output')
     args = parser.parse_args()
 
     # TODO read streams directly from log file configuration
     spider = Spider(config={'stream_id_in':1, 'stream_id_out':2}, logger=None, output=None)
     with LogReader(args.logfile) as log:
         for timestamp, stream_id, data in log.read_gen(args.stream):
-            ret = spider.process(data, replay_only=True)
+            ret = spider.process(data, replay_only=True, verbose=args.verbose)
             if ret is not None:
                 print(hex(ret))
 
