@@ -33,8 +33,6 @@ class Robot:
     def update(self, timeout=5):
         if len(self.drivers) > 0:
             data = self.queue.get(timeout=timeout)
-            if 'gps' in data:
-                print(data)
             return data
         return None
 
@@ -45,8 +43,6 @@ class Robot:
             driver.join()
 
     def input_gate(self, name, data):
-        if name == 'gps':
-            print(name, data)
         dt = self.logger.write(self.stream_id, bytes(str((name, data)),'ascii'))  # TODO single or mutiple streams?
         self.queue.put((dt, name, data))
 
