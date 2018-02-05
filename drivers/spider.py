@@ -74,10 +74,10 @@ class Spider(Thread):
                 return data[2+size:], data[:2+size]
         return data, b''  # no complete packet available yet
 
-    def process(self, data):
+    def process(self, data, replay_only=False):
         self.buf, packet = self.split_buffer(self.buf + data)
 
-        if packet == CAN_BRIDGE_READY:
+        if packet == CAN_BRIDGE_READY and not replay_only:
             data = CAN_BRIDGE_SYNC
             self.logger.write(self.stream_id_out, data)
             self.com.write(data)
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     spider = Spider(config={'stream_id_in':1, 'stream_id_out':2}, logger=None, output=None)
     with LogReader(args.logfile) as log:
         for timestamp, stream_id, data in log.read_gen(args.stream):
-            ret = spider.process(data)
+            ret = spider.process(data, replay_only=True)
             if ret is not None:
                 print(hex(ret))
 
