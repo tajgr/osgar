@@ -55,6 +55,8 @@ class RoboOrienteering2018:
         self.time = None
         self.last_position = None  # (lon, lat) in milliseconds
         self.last_imu_yaw = None  # magnetic north in degrees
+        self.status = None
+        self.steering_status = None
         self.cmd = (0, 0)
 
     def update(self):
@@ -69,6 +71,7 @@ class RoboOrienteering2018:
                 (yaw, pitch, roll), (magx, y, z), (accx, y, z), (gyrox, y, z) = data
                 self.last_imu_yaw = yaw
             elif msg_id == 'spider':  # i.e. I can drive only spider??
+                self.status, self.steering_status = data
                 self.robot.execute('spider', self.cmd)
 
     def set_speed(self, speed, angular_speed):

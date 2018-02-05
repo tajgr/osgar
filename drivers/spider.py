@@ -107,14 +107,17 @@ class Spider(Thread):
                 print(hex(msg_id), packet[2:])
             if msg_id == 0x200:
                 self.status_word = struct.unpack('H', packet[2:])[0]
-
+                if self.wheel_angles is not None and self.zero_steering is not None:
+                    ret = self.status_word, tuple([Spider.fix_range(a - b) for a, b in zip(self.wheel_angles, self.zero_steering)])
+                else:
+                    ret = self.status_word, None
                 if self.output:
-                    self.output(self.name, self.status_word)
-                return self.status_word
+                    self.output(self.name, ret)
+                return ret
             elif msg_id == 0x201:
                 assert len(packet) == 2 + 8, packet
                 self.wheel_angles = struct.unpack_from('HHHH', packet, 2)
-                if verbose and self.zero_steering is not None:
+                if verbose and self.wheel_angles is not None and self.zero_steering is not None:
                     print('Wheels:',
                           [Spider.fix_range(a - b) for a, b in zip(self.wheel_angles, self.zero_steering)])
             elif msg_id == 0x203:
@@ -169,7 +172,7 @@ if __name__ == "__main__":
     with LogReader(args.logfile) as log:
         for timestamp, stream_id, data in log.read_gen(args.stream):
             ret = spider.process(data, replay_only=True, verbose=args.verbose)
-            if ret is not None:
-                print(hex(ret))
+            if ret is not None :
+                print(hex(ret[0]), ret[1])
 
 # vim: expandtab sw=4 ts=4
