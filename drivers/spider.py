@@ -113,7 +113,8 @@ class Spider(Thread):
         if self.can_bridge_initialized:
             speed, angular_speed = data
             if speed > 0:
-                packet = CAN_packet(0x401, [0x80 + 127, 0])
+                angle_cmd = int(angular_speed)  # TODO verify angle, byte resolution
+                packet = CAN_packet(0x401, [0x80 + 127, angle_cmd])
             else:
                 packet = CAN_packet(0x401, [0, 0])  # STOP packet
             self.logger.write(self.stream_id_out, packet)
