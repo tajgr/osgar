@@ -51,6 +51,7 @@ class RoboOrienteering2018:
     def __init__(self, robot):
         self.robot = robot
         self.goal = (51749517 + 100, 180462688)  # TODO extra configuration
+        self.time = None
         self.last_position = None  # (lon, lat) in milliseconds
         self.last_imu_yaw = None  # magnetic north in degrees
         self.cmd = (0, 0)
@@ -60,6 +61,7 @@ class RoboOrienteering2018:
         if packet is not None:
 #            print('RO', packet)
             timestamp, msg_id, data = packet
+            self.time = timestamp
             if msg_id == 'gps':
                 self.last_position = data
             elif msg_id == 'imu':
@@ -91,9 +93,11 @@ class RoboOrienteering2018:
         print("Heading %.1fdeg" % math.degrees(geo_angle(self.last_position, self.goal)))
         
         while geo_length(self.last_position, self.goal) > 1.0:
-            print(geo_length(self.last_position, self.goal))
             self.set_speed(10, 0)
+            prev_time = self.time
             self.update()
+            if int(prev_time.total_seconds()) != int(self.time.total_seconds()):
+                print(self.time, geo_length(self.last_position, self.goal))
 
         print("STOP")
         self.set_speed(0, 0)
