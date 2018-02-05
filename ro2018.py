@@ -38,6 +38,13 @@ def geo_length(pos1, pos2):
     return math.hypot((pos2[0] - pos1[0])*x_scale, pos2[1] - pos1[1]) * scale
 
 
+def geo_angle(pos1, pos2):
+    if geo_length(pos1, pos2) < 1.0:
+        return None
+    x_scale = math.cos(math.radians(pos1[0]/3600000))
+    return math.atan2(pos2[1] - pos1[1], (pos2[0] - pos1[0])*x_scale)
+
+
 class RoboOrienteering2018:
     def __init__(self, robot):
         self.robot = robot
