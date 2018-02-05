@@ -101,9 +101,11 @@ class RoboOrienteering2018:
             if int(prev_time.total_seconds()) != int(self.time.total_seconds()):
                 print(self.time, geo_length(self.last_position, self.goal))
 
-        print("STOP")
+        print("STOP (3s)")
         self.set_speed(0, 0)
-        for i in range(10):
+        start_time = self.time
+        while self.time - start_time < timedelta(seconds=3):
+            self.set_speed(0, 0)
             self.update()
 
 
