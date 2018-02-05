@@ -4,6 +4,7 @@
 
 import argparse
 import sys
+import math
 
 from lib.logger import LogWriter, LogReader
 from lib.config import Config
@@ -29,19 +30,33 @@ class LogRobot:
         log_msg_id, log_data = eval(packet)  # TODO replace by safe version!
         assert (msg_id, data) == (log_msg_id, log_data), ((msg_id, data), (log_msg_id, log_data))
 
+
+def geo_length(pos1, pos2):
+    "return distance on sphere for two integer positions in milliseconds"
+    x_scale = math.cos(math.radians(pos1[0]/3600000))
+    scale = 40000000/(360*3600000)
+    return math.hypot((pos2[0] - pos1[0])*x_scale, pos2[1] - pos1[1]) * scale
+
+
 class RoboOrienteering2018:
     def __init__(self, robot):
         self.robot = robot
-        self.last_position = None
+        self.goal = (51749517, 180462688)  # TODO extra configuration
+        self.last_position = None  # (lon, lat) in milliseconds
+        self.last_imu_yaw = None  # magnetic north in degrees
         self.cmd = (0, 0)
 
     def update(self):
         packet = self.robot.update()
         if packet is not None:
-            print('RO', packet)
+#            print('RO', packet)
             timestamp, msg_id, data = packet
             if msg_id == 'gps':
                 self.last_position = data
+                print(geo_length(self.last_position, self.goal))
+            elif msg_id == 'imu':
+                (yaw, pitch, roll), (magx, y, z), (accx, y, z), (gyrox, y, z) = data
+                self.last_imu_yaw = yaw
             elif msg_id == 'spider':  # i.e. I can drive only spider??
                 self.robot.execute('spider', self.cmd)
 
