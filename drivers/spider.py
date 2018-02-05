@@ -59,6 +59,7 @@ class Spider(Thread):
         self.speed_cmd = [0, 0]
         self.status_cmd = 3
         self.alive = 0  # toggle with 128
+        self.desired_angle = None  # in Spider mode desired weels direction
 
     @staticmethod
     def split_buffer(data):
@@ -141,8 +142,23 @@ class Spider(Thread):
         if self.can_bridge_initialized:
             speed, angular_speed = data
             if speed > 0:
-                angle_cmd = int(angular_speed)  # TODO verify angle, byte resolution
-                packet = CAN_packet(0x401, [0x80 + 127, angle_cmd])
+                if self.status_word is None or self.status_word & 0x10 != 0:
+                    angle_cmd = int(angular_speed)  # TODO verify angle, byte resolution
+                else:
+                    self.desired_angle = int(angular_speed)  # TODO proper naming etc.
+                    if self.wheel_angles is not None and self.zero_steering is not None:
+                        curr = Spider.fix_range(self.wheel_angles[0] - self.zero_steering[0])
+                        diff = Spider.fix_range(self.desired_angle - curr)
+                        if abs(diff) < 5:
+                            angle_cmd = 0
+                        elif diff < 0:
+                            angle_cmd = 50
+                        else:
+                            angle_cmd = 0x80 + 50
+                    else:
+                        angle_cmd = 0
+#                packet = CAN_packet(0x401, [0x80 + 127, angle_cmd])
+                packet = CAN_packet(0x401, [0x80 + 80, angle_cmd])
             else:
                 packet = CAN_packet(0x401, [0, 0])  # STOP packet
             self.logger.write(self.stream_id_out, packet)
