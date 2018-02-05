@@ -25,6 +25,8 @@ class LogRobot:
         return dt, msg_id, data
 
     def execute(self, msg_id, data):
+        if self.stream_id_out is None:  # i.e. ignore outputs
+            return
         dt, stream, packet = next(self.log_read)
         assert stream == self.stream_id_out, (stream, self.stream_id_out)
         log_msg_id, log_data = eval(packet)  # TODO replace by safe version!
@@ -109,6 +111,7 @@ if __name__ == "__main__":
 
     parser_replay = subparsers.add_parser('replay', help='replay from logfile')
     parser_replay.add_argument('logfile', help='recorded log file')
+    parser_replay.add_argument('--force', '-F', dest='force', action='store_true', help='force replay even for failing output asserts')
     args = parser.parse_args()
 
     if args.command == 'replay':
@@ -116,7 +119,10 @@ if __name__ == "__main__":
         print(next(log.read_gen(0))[-1])  # old arguments
         config_str = next(log.read_gen(0))[-1]
         config = eval(config_str)  # TODO what was the safe version of eval?!
-        robot = LogRobot(log, config['robot']['stream_id'], config['robot']['stream_id_out'])
+        if args.force:
+            robot = LogRobot(log, config['robot']['stream_id'], stream_id_out=None)
+        else:
+            robot = LogRobot(log, config['robot']['stream_id'], config['robot']['stream_id_out'])
         game = RoboOrienteering2018(robot)
         game.play()
 
