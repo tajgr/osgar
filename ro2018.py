@@ -5,6 +5,7 @@
 import argparse
 import sys
 import math
+from datetime import timedelta
 
 from lib.logger import LogWriter, LogReader
 from lib.config import Config
@@ -92,7 +93,8 @@ class RoboOrienteering2018:
 
         print("Heading %.1fdeg" % math.degrees(geo_angle(self.last_position, self.goal)))
         
-        while geo_length(self.last_position, self.goal) > 1.0:
+        start_time = self.time
+        while geo_length(self.last_position, self.goal) > 1.0 and self.time - start_time < timedelta(seconds=10):
             self.set_speed(10, 0)
             prev_time = self.time
             self.update()
