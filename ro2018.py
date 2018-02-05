@@ -48,7 +48,7 @@ def geo_angle(pos1, pos2):
 class RoboOrienteering2018:
     def __init__(self, robot):
         self.robot = robot
-        self.goal = (51749517, 180462688)  # TODO extra configuration
+        self.goal = (51749517 + 100, 180462688)  # TODO extra configuration
         self.last_position = None  # (lon, lat) in milliseconds
         self.last_imu_yaw = None  # magnetic north in degrees
         self.cmd = (0, 0)
@@ -60,7 +60,6 @@ class RoboOrienteering2018:
             timestamp, msg_id, data = packet
             if msg_id == 'gps':
                 self.last_position = data
-                print(geo_length(self.last_position, self.goal))
             elif msg_id == 'imu':
                 (yaw, pitch, roll), (magx, y, z), (accx, y, z), (gyrox, y, z) = data
                 self.last_imu_yaw = yaw
@@ -70,12 +69,31 @@ class RoboOrienteering2018:
     def set_speed(self, speed, angular_speed):
         self.cmd = (speed, angular_speed)
 
-    def play(self):
+    def play0(self):
         for i in range(10):
             self.update()
         self.set_speed(10, 0)
         for i in range(100):
             self.update()
+        self.set_speed(0, 0)
+        for i in range(10):
+            self.update()
+
+    def play(self):
+        print("Waiting for valid GPS position...")
+        while self.last_position is None or self.last_position == (None, None):
+            self.update()
+        print("Ready")
+        print("Goal at %.2fm" % geo_length(self.last_position, self.goal))
+
+        print("Heading %.1fdeg" % math.degrees(geo_angle(self.last_position, self.goal)))
+        
+        while geo_length(self.last_position, self.goal) > 1.0:
+            print(geo_length(self.last_position, self.goal))
+            self.set_speed(10, 0)
+            self.update()
+
+        print("STOP")
         self.set_speed(0, 0)
         for i in range(10):
             self.update()
