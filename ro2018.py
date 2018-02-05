@@ -91,15 +91,15 @@ class RoboOrienteering2018:
         print("Ready")
         print("Goal at %.2fm" % geo_length(self.last_position, self.goal))
 
-        print("Heading %.1fdeg" % math.degrees(geo_angle(self.last_position, self.goal)))
+        print("Heading %.1fdeg, imu" % math.degrees(geo_angle(self.last_position, self.goal)), self.last_imu_yaw)
         
         start_time = self.time
-        while geo_length(self.last_position, self.goal) > 1.0 and self.time - start_time < timedelta(seconds=10):
-            self.set_speed(10, 0)
+        while geo_length(self.last_position, self.goal) > 1.0 and self.time - start_time < timedelta(seconds=5):
+            self.set_speed(10, 50)
             prev_time = self.time
             self.update()
             if int(prev_time.total_seconds()) != int(self.time.total_seconds()):
-                print(self.time, geo_length(self.last_position, self.goal))
+                print(self.time, geo_length(self.last_position, self.goal), self.last_imu_yaw)
 
         print("STOP (3s)")
         self.set_speed(0, 0)
