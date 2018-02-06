@@ -231,9 +231,9 @@ if __name__ == "__main__":
         spider = Spider(config=config.data['robot']['spider'], logger=log, output=None)
         spider.start()
         spider.desired_angle = 50
-        time.sleep(5.0)
+        time.sleep(25.0)
         spider.desired_angle = None
-        time.sleep(3.0)
+        time.sleep(50.0)
         spider.request_stop()
         spider.join()
 
