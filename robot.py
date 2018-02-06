@@ -43,8 +43,9 @@ class Robot:
             driver.join()
 
     def input_gate(self, name, data):
-        dt = self.logger.write(self.stream_id, bytes(str((name, data)),'ascii'))  # TODO single or mutiple streams?
-        self.queue.put((dt, name, data))
+        with self.logger.lock:  # make sure that order by timestamp is preserved            
+            dt = self.logger.write(self.stream_id, bytes(str((name, data)),'ascii'))  # TODO single or mutiple streams?
+            self.queue.put((dt, name, data))
 
     def execute(self, msg_id, data):
         assert self.stream_id_out is not None
