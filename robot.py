@@ -35,7 +35,7 @@ class Robot:
         if len(self.drivers) > 0:
             data = self.queue.get(timeout=timeout)
             if self.stream_id_ref is not None:
-                ignore_dt = self.logger.write(self.stream_id_ref, data)
+                ignore_dt = self.logger.write(self.stream_id_ref, bytes(str(data),'ascii'))
             return data
         return None
 
