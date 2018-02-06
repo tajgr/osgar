@@ -179,6 +179,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parse Spider CAN packets')
     parser.add_argument('logfile', help='log filename')
     parser.add_argument('--stream', help='stream ID', type=int, default=None)
+    parser.add_argument('--times', help='display timestamps', action='store_true')
     parser.add_argument('--verbose', '-v', dest='verbose', action='store_true',
                         help='verbose output')
     args = parser.parse_args()
@@ -187,6 +188,8 @@ if __name__ == "__main__":
     spider = Spider(config={'stream_id_in':1, 'stream_id_out':2}, logger=None, output=None)
     with LogReader(args.logfile) as log:
         for timestamp, stream_id, data in log.read_gen(args.stream):
+            if args.times:
+                print(timestamp)
             ret = spider.process(data, replay_only=True, verbose=args.verbose)
             if ret is not None :
                 print(hex(ret[0]), ret[1])
