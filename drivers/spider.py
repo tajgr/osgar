@@ -112,9 +112,17 @@ class Spider(Thread):
                     ret = self.status_word, tuple([Spider.fix_range(a - b) for a, b in zip(self.wheel_angles, self.zero_steering)])
                 else:
                     ret = self.status_word, None
+                print(ret)
                 if self.output:
                     self.output(self.name, ret)
+
+                # handle steering
+                if self.desired_angle is not None:
+                    self.send((10, self.desired_angle))
+                else:
+                    self.send((0, 0))
                 return ret
+
             elif msg_id == 0x201:
                 assert len(packet) == 2 + 8, packet
                 self.wheel_angles = struct.unpack_from('HHHH', packet, 2)
@@ -125,6 +133,7 @@ class Spider(Thread):
                 assert len(packet) == 2 + 8, packet
                 prev = self.zero_steering
                 self.zero_steering = struct.unpack_from('HHHH', packet, 2)
+                print('Zero', self.zero_steering)
                 # make sure that calibration did not change during program run
                 assert prev is None or prev == self.zero_steering, (prev, self.zero_steering)
 
@@ -145,10 +154,12 @@ class Spider(Thread):
                 if self.status_word is None or self.status_word & 0x10 != 0:
                     angle_cmd = int(angular_speed)  # TODO verify angle, byte resolution
                 else:
-                    self.desired_angle = int(angular_speed)  # TODO proper naming etc.
+                    print('SPIDER MODE')
+                    desired_angle = int(angular_speed)  # TODO proper naming etc.
                     if self.wheel_angles is not None and self.zero_steering is not None:
                         curr = Spider.fix_range(self.wheel_angles[0] - self.zero_steering[0])
-                        diff = Spider.fix_range(self.desired_angle - curr)
+                        diff = Spider.fix_range(desired_angle - curr)
+                        print('DIFF', diff)
                         if abs(diff) < 5:
                             angle_cmd = 0
                         elif diff < 0:
@@ -174,7 +185,7 @@ class Spider(Thread):
             self.logger.write(0, 'ERROR: CAN bridge not initialized yet! [%s]' % str(data))
 
 
-if __name__ == "__main__":
+if __name__ == "__mainX__":
     import argparse
     parser = argparse.ArgumentParser(description='Parse Spider CAN packets')
     parser.add_argument('logfile', help='log filename')
@@ -193,5 +204,38 @@ if __name__ == "__main__":
             ret = spider.process(data, replay_only=True, verbose=args.verbose)
             if ret is not None :
                 print(hex(ret[0]), ret[1])
+
+
+if __name__ == "__main__":
+    import argparse
+    import time
+    from lib.config import Config
+    
+    parser = argparse.ArgumentParser(description='Test robot configuration')
+    subparsers = parser.add_subparsers(help='sub-command help', dest='command')
+    subparsers.required = True
+    parser_run = subparsers.add_parser('run', help='run on real HW')
+    parser_run.add_argument('config', help='configuration file')
+    parser_run.add_argument('--note', help='add description')
+
+    parser_replay = subparsers.add_parser('replay', help='replay from logfile')
+    parser_replay.add_argument('logfile', help='recorded log file')
+    args = parser.parse_args()
+
+    if args.command == 'replay':
+        pass  # TODO
+    elif args.command == 'run':
+        log = LogWriter(prefix='spider-', note=str(sys.argv))
+        config = Config.load(args.config)
+        log.write(0, bytes(str(config.data), 'ascii'))  # write configuration
+        spider = Spider(config=config.data['robot']['spider'], logger=log, output=None)
+        spider.start()
+        spider.desired_angle = 50
+        time.sleep(5.0)
+        spider.desired_angle = None
+        time.sleep(3.0)
+        spider.request_stop()
+        spider.join()
+
 
 # vim: expandtab sw=4 ts=4
