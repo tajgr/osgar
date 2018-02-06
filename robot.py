@@ -16,6 +16,7 @@ class Robot:
         self.logger = logger
         self.stream_id = config['stream_id']
         self.stream_id_out = config.get('stream_id_out', None)
+        self.stream_id_ref = config.get('stream_id_ref', None)
         self.drivers = []
         self.executors = []
         for driver_name in config['drivers']:
@@ -33,6 +34,8 @@ class Robot:
     def update(self, timeout=5):
         if len(self.drivers) > 0:
             data = self.queue.get(timeout=timeout)
+            if self.stream_id_ref is not None:
+                ignore_dt = self.logger.write(self.stream_id_ref, data)
             return data
         return None
 

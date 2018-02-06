@@ -13,6 +13,7 @@
         "port": "/dev/ttyUSB0", "speed": 115200, "stream_id": 4
     },
     "stream_id": 5,
-    "stream_id_out": 6
+    "stream_id_out": 6,
+    "stream_id_ref": 7
   }
 }
