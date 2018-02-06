@@ -65,4 +65,25 @@ class LoggerTest(unittest.TestCase):
 
         os.remove(log.filename)
 
+    def test_log_asserter(self):
+        with LogWriter(prefix='tmp3', note='test_log_asserter') as log:
+            filename = log.filename
+            t1 = log.write(1, b'\x01\x02')
+            time.sleep(0.001)
+            t2 = log.write(2, b'\x05')
+            time.sleep(0.001)
+            t3 = log.write(1, b'\x07\x08')
+
+        with LogAsserter(filename) as log:
+            log.assert_stream_id = 2
+            arr = []
+            for t, stream_id, data in log.read_gen(multiple_streams=[1, 2]):
+                self.assertIn(stream_id, [1,2])
+                if stream_id == 2:
+                    log.write(2, b'\x05')
+                arr.append((t, stream_id))
+            self.assertEqual(arr, [(t1, 1), (t2, 2), (t3, 1)])
+
+        os.remove(log.filename)
+
 # vim: expandtab sw=4 ts=4
