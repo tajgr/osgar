@@ -148,7 +148,7 @@ class Spider(Thread):
         self.should_run.clear()
 
     def send(self, data):
-        if self.can_bridge_initialized:
+        if True: #hack self.can_bridge_initialized:
             speed, angular_speed = data
             if speed > 0:
                 if self.status_word is None or self.status_word & 0x10 != 0:
@@ -172,20 +172,20 @@ class Spider(Thread):
                 packet = CAN_packet(0x401, [0x80 + 80, angle_cmd])
             else:
                 packet = CAN_packet(0x401, [0, 0])  # STOP packet
-            self.logger.write(self.stream_id_out, packet)
-            self.com.write(packet)
+#hack            self.logger.write(self.stream_id_out, packet)
+#hack            self.com.write(packet)
 
             # alive
             packet = CAN_packet(0x400, [self.status_cmd, self.alive])
-            self.logger.write(self.stream_id_out, packet)
-            self.com.write(packet)
+#hack            self.logger.write(self.stream_id_out, packet)
+#hack            self.com.write(packet)
             self.alive = 128 - self.alive
         else:
             print('CAN bridge not initialized yet!')
-            self.logger.write(0, 'ERROR: CAN bridge not initialized yet! [%s]' % str(data))
+#hack            self.logger.write(0, 'ERROR: CAN bridge not initialized yet! [%s]' % str(data))
 
 
-if __name__ == "__mainX__":
+if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Parse Spider CAN packets')
     parser.add_argument('logfile', help='log filename')
@@ -204,9 +204,14 @@ if __name__ == "__mainX__":
             ret = spider.process(data, replay_only=True, verbose=args.verbose)
             if ret is not None :
                 print(hex(ret[0]), ret[1])
+            if ret is not None and ret[1] is not None:
+                val = ret[1][0]
+                if val < -200:
+                    val += 512
+                print("DRAW", timestamp.total_seconds(), val)
 
 
-if __name__ == "__main__":
+if __name__ == "__mainY__":
     import argparse
     import time
     from lib.config import Config

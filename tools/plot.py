@@ -31,6 +31,9 @@ def get_arr(filename):
             gas = line.split()[-1]
             if gas != '0':
                 arr.append((len(arr), float(gas)))
+        if 'DRAW' in line:
+            s = line.split()
+            arr.append((float(s[1]), float(s[2])))
     return arr
 
 def draw(arr):
@@ -38,6 +41,8 @@ def draw(arr):
     x = [x for (x, _) in arr]
     y = [y for (_, y) in arr]
     plt.plot(x, y, 'o-', linewidth=2)
+    plt.ylabel('steering angle')
+    plt.xlabel('time (sec)')
 
 #    z = []
 #    for i in xrange(len(y)):
