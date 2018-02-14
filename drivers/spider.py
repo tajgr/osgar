@@ -136,6 +136,10 @@ class Spider(Thread):
                 print('Zero', self.zero_steering)
                 # make sure that calibration did not change during program run
                 assert prev is None or prev == self.zero_steering, (prev, self.zero_steering)
+            elif msg_id == 0x204:
+                assert len(packet) == 2 + 8, packet
+                val = struct.unpack_from('HHBBH', packet, 2)
+                print("New", val)
 
     def run(self):
         while self.should_run.isSet():
