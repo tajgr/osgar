@@ -131,8 +131,9 @@ class Spider(Thread):
             while True:
                 dt, channel, data = self.bus.listen()
                 if len(data) > 0:
-                    for __ in self.process_gen(data):
-                        pass
+                    for status in self.process_gen(data):
+                        if status is not None:
+                            self.bus.publish('status', status)
         except BusShutdownException:
             pass
 
