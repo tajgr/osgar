@@ -101,7 +101,9 @@ class RoboOrienteering2018:
     def play(self):
         self.wait(timedelta(seconds=1))
         self.set_speed(1, 50)
-        self.wait(timedelta(seconds=3))
+        self.wait(timedelta(seconds=5))
+        self.set_speed(10, 0)
+        self.wait(timedelta(seconds=2))
         self.set_speed(0, 0)
         self.wait(timedelta(seconds=1))
 
