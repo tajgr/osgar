@@ -167,8 +167,10 @@ class Spider(Thread):
                             angle_cmd = 0x80 + 50
                     else:
                         angle_cmd = 0
-#                packet = CAN_packet(0x401, [0x80 + 127, angle_cmd])
-                packet = CAN_packet(0x401, [0x80 + 80, angle_cmd])
+                if speed >= 10:
+                    packet = CAN_packet(0x401, [0x80 + 127, angle_cmd])
+                else:
+                    packet = CAN_packet(0x401, [0x80 + 80, angle_cmd])
             else:
                 packet = CAN_packet(0x401, [0, 0])  # STOP packet
             self.bus.publish('can', packet)
