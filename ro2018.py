@@ -66,11 +66,11 @@ class RoboOrienteering2018:
     def update(self):
         packet = self.bus.listen()
         if packet is not None:
-            print('RO', packet)
+#            print('RO', packet)
             timestamp, channel, data = packet
             self.time = timestamp
             if channel == 'position':
-                self.last_position = data
+                self.last_position = (data['lon'], data['lat'])
             elif channel == 'orientation':
                 (yaw, pitch, roll), (magx, y, z), (accx, y, z), (gyrox, y, z) = data
                 self.last_imu_yaw = yaw
@@ -79,19 +79,33 @@ class RoboOrienteering2018:
                 self.bus.publish('move', self.cmd)
 
     def set_speed(self, speed, angular_speed):
+        print('set_speed', speed, angular_speed)
         self.cmd = (speed, angular_speed)
 
-    def play0(self):
-        for i in range(10):
+    def start(self):
+        pass
+
+    def request_stop(self):
+        self.bus.shutdown()
+
+    def join(self):
+        pass
+
+    def wait(self, dt):
+        if self.time is None:
             self.update()
-        self.set_speed(10, 0)
-        for i in range(100):
-            self.update()
-        self.set_speed(0, 0)
-        for i in range(10):
+        start_time = self.time
+        while self.time - start_time < dt:
             self.update()
 
     def play(self):
+        self.wait(timedelta(seconds=1))
+        self.set_speed(1, 50)
+        self.wait(timedelta(seconds=3))
+        self.set_speed(0, 0)
+        self.wait(timedelta(seconds=1))
+
+    def play1(self):
         print("Waiting for valid GPS position...")
         while self.last_position is None or self.last_position == INVALID_COORDINATES:
             self.update()
