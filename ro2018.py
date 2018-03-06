@@ -53,7 +53,7 @@ def geo_angle(pos1, pos2):
 
 
 class RoboOrienteering2018:
-    def __init__(self, bus):
+    def __init__(self, config, bus):
         self.bus = bus
         self.goal = (51749517 + 100, 180462688)  # TODO extra configuration
         self.time = None
@@ -74,9 +74,9 @@ class RoboOrienteering2018:
             elif channel == 'orientation':
                 (yaw, pitch, roll), (magx, y, z), (accx, y, z), (gyrox, y, z) = data
                 self.last_imu_yaw = yaw
-            elif channel == 'spider':  # i.e. I can drive only spider??
+            elif channel == 'status':  # i.e. I can drive only spider??
                 self.status, self.steering_status = data
-                self.bus.publish('spider', self.cmd)
+                self.bus.publish('move', self.cmd)
 
     def set_speed(self, speed, angular_speed):
         self.cmd = (speed, angular_speed)
@@ -145,11 +145,8 @@ if __name__ == "__main__":
         log = LogWriter(prefix='ro2018-', note=str(sys.argv))
         config = Config.load(args.config)
         log.write(0, bytes(str(config.data), 'ascii'))  # write configuration
-        game_bus = BusHandler(log, out={'cmd':[]}, name='ro2018')
-        robot = Robot(config=config.data['robot'], logger=log, probe=game_bus)
-        # TODO filter only selected channels
-        # TODO connect output
-        game = RoboOrienteering2018(bus=game_bus)
+        robot = Robot(config=config.data['robot'], logger=log, application=RoboOrienteering2018)
+        game = robot.modules['app']  # TODO nicer reference
         robot.start()
         game.play()
         robot.finish()
