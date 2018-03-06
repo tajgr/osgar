@@ -93,8 +93,8 @@ class Spider(Thread):
                     ret = self.status_word, None
 
                 # handle steering
-                if self.desired_angle is not None:
-                    self.send((10, self.desired_angle))
+                if self.desired_angle is not None and self.desired_speed is not None:
+                    self.send((self.desired_speed, self.desired_angle))
                 else:
                     self.send((0, 0))
                 return ret
