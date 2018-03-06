@@ -46,6 +46,7 @@ class Spider(Thread):
         self.status_cmd = 3
         self.alive = 0  # toggle with 128
         self.desired_angle = None  # in Spider mode desired weels direction
+        self.desired_speed = None
 
     @staticmethod
     def split_buffer(data):
@@ -130,10 +131,15 @@ class Spider(Thread):
         try:
             while True:
                 dt, channel, data = self.bus.listen()
-                if len(data) > 0:
-                    for status in self.process_gen(data):
-                        if status is not None:
-                            self.bus.publish('status', status)
+                if channel == 'raw':
+                    if len(data) > 0:
+                        for status in self.process_gen(data):
+                            if status is not None:
+                                self.bus.publish('status', status)
+                elif channel == 'move':
+                    self.desired_speed, self.desired_angle = data
+                else:
+                    assert False, channel  # unsupported channel
         except BusShutdownException:
             pass
 
