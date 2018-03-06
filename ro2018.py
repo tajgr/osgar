@@ -103,7 +103,7 @@ class RoboOrienteering2018:
         self.set_speed(1, 50)
         self.wait(timedelta(seconds=5))
         self.set_speed(10, 0)
-        self.wait(timedelta(seconds=2))
+        self.wait(timedelta(seconds=5))
         self.set_speed(0, 0)
         self.wait(timedelta(seconds=1))
 
