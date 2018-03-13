@@ -79,7 +79,7 @@ class RoboOrienteering2018:
         while self.time - start_time < dt:
             self.update()
 
-    def play(self):
+    def play0(self):
         self.wait(timedelta(seconds=1))
         self.set_speed(1, 50)
         self.wait(timedelta(seconds=5))
@@ -88,7 +88,7 @@ class RoboOrienteering2018:
         self.set_speed(0, 0)
         self.wait(timedelta(seconds=1))
 
-    def play1(self):
+    def play(self):
         print("Waiting for valid GPS position...")
         while self.last_position is None or self.last_position == INVALID_COORDINATES:
             self.update()
