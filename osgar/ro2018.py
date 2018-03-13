@@ -44,7 +44,7 @@ def normalizeAnglePIPI( angle ):
 class RoboOrienteering2018:
     def __init__(self, config, bus):
         self.bus = bus
-        self.goal = (51749517 + 1000, 180462688)  # TODO extra configuration
+        self.goal = (51749517, 180462688 - 1000)  # TODO extra configuration
         self.time = None
         self.last_position = None  # (lon, lat) in milliseconds
         self.last_imu_yaw = None  # magnetic north in degrees
