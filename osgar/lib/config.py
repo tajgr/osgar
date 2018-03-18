@@ -14,7 +14,8 @@ class Config(object):
 
     @classmethod
     def load(cls, filename):
-        return cls.loads(open(filename).read())
+        with open(filename) as f:
+            return cls.loads(f.read())
 
     @classmethod
     def loads(cls, text_data):

@@ -3,8 +3,8 @@ import unittest
 from .config import *
 
 
-def test_data(filename):
-    return os.path.join(os.path.dirname(__file__), 'test_data', filename)
+def test_data(filename, test_dir='test_data'):
+    return os.path.join(os.path.dirname(__file__), test_dir, filename)
 
 
 class ConfigTest(unittest.TestCase):
@@ -13,8 +13,10 @@ class ConfigTest(unittest.TestCase):
         conf = Config()
         self.assertIsNone(conf.data.get('localization'))
 
-if __name__ == "__main__":
-    unittest.main() 
+    def test_load_config_files(self):
+        conf_dir = '../../config'
+        filename = test_data('ro2018-spider-gps-imu.json', conf_dir)
+        conf = Config.load(filename)
 
-# vim: expandtab sw=4 ts=4 
+# vim: expandtab sw=4 ts=4
 
