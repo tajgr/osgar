@@ -192,7 +192,7 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(help='sub-command help', dest='command')
     subparsers.required = True
     parser_run = subparsers.add_parser('run', help='run on real HW')
-    parser_run.add_argument('config', help='configuration file')
+    parser_run.add_argument('config', nargs='+', help='configuration file')
     parser_run.add_argument('--note', help='add description')
 
     parser_replay = subparsers.add_parser('replay', help='replay from logfile')
