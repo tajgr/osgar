@@ -14,8 +14,20 @@ class Config(object):
 
     @classmethod
     def load(cls, filename):
-        with open(filename) as f:
-            return cls.loads(f.read())
+        if isinstance(filename, list):
+            filenames = filename
+        else:
+            filenames = [filename]
+        
+        ret = None
+        for filename in filenames:
+            with open(filename) as f:
+                c = cls.loads(f.read())
+                if ret is None:
+                    ret = c
+                else:
+                    ret.data.update(c.data)
+        return ret
 
     @classmethod
     def loads(cls, text_data):

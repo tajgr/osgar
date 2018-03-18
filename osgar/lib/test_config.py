@@ -18,5 +18,11 @@ class ConfigTest(unittest.TestCase):
         filename = test_data('ro2018-spider-gps-imu.json', conf_dir)
         conf = Config.load(filename)
 
+    def test_multiple_config_files(self):
+        conf_dir = '../../config'
+        filename1 = test_data('ro2018-spider-gps-imu.json', conf_dir)
+        filename2 = test_data('ro2018-czu-waypoints.json', conf_dir)
+        conf = Config.load([filename1, filename2])
+
 # vim: expandtab sw=4 ts=4
 
