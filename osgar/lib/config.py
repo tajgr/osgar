@@ -19,14 +19,14 @@ class Config(object):
         else:
             filenames = [filename]
         
-        ret = None
+        ret = Config()
         for filename in filenames:
             with open(filename) as f:
                 c = cls.loads(f.read())
                 if ret is None:
-                    ret = c
+                    ret.data = c.copy()
                 else:
-                    ret.data.update(c.data)
+                    ret.data = Config.merge_dict(ret.data, c.data)
         return ret
 
     @classmethod
@@ -37,6 +37,17 @@ class Config(object):
         cls.version = cls.data['version']
 
         return cls
+
+    @staticmethod
+    def merge_dict(dict1, dict2):
+        ret = dict1.copy()
+        for key in dict2.keys():
+            if key in dict1:
+                if dict1[key] != dict2[key]:
+                    ret[key] = Config.merge_dict(dict1[key], dict2[key])
+            else:
+                ret[key] = dict2[key]
+        return ret
 
     def __init__(self):
         self.data = {}
