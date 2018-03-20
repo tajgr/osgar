@@ -42,11 +42,16 @@ def normalizeAnglePIPI( angle ):
     return angle 
 
 
+def latlon2xy(lat, lon):
+    return int(round(lon*3600000)), int(round(lat*3600000))
+
+
 class RoboOrienteering2018:
     def __init__(self, config, bus):
         self.bus = bus
         self.maxspeed = config['maxspeed']
-        self.goal = (51749517, 180462688 - 1000)  # TODO extra configuration
+        lat, lon = config['waypoints'][0]
+        self.goal = latlon2xy(lat, lon)
         self.time = None
         self.last_position = None  # (lon, lat) in milliseconds
         self.last_imu_yaw = None  # magnetic north in degrees

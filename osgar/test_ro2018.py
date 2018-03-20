@@ -3,7 +3,8 @@ from unittest.mock import MagicMock
 import math
 from datetime import timedelta
 
-from osgar.ro2018 import geo_length, geo_angle, LogBusHandler, LogBusHandlerInputsOnly
+from osgar.ro2018 import (geo_length, geo_angle, LogBusHandler, LogBusHandlerInputsOnly,
+                          latlon2xy)
 
 
 class RO2018Test(unittest.TestCase):
@@ -76,5 +77,8 @@ class RO2018Test(unittest.TestCase):
         self.assertEqual(bus.listen(), (timedelta(microseconds=10), 'raw', (1, 2)))
         bus.publish('new_channel', b'some data')
         self.assertEqual(bus.listen(), (timedelta(microseconds=11), 'raw', (3, 4, 5)))
+
+    def test_latlon2xy(self):
+        self.assertEqual(latlon2xy(50.128246666666, 14.3748658333333), (51749517, 180462688 - 1000))
 
 # vim: expandtab sw=4 ts=4
