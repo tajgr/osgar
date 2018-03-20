@@ -47,6 +47,8 @@ def latlon2xy(lat, lon):
 
 
 class RoboOrienteering2018:
+    EMERGENCY_STOP = 0x0001
+
     def __init__(self, config, bus):
         self.bus = bus
         self.maxspeed = config['maxspeed']
@@ -134,6 +136,11 @@ class RoboOrienteering2018:
 
             prev_time = self.time
             self.update()
+
+            if (self.status & self.EMERGENCY_STOP) == 0:
+                print("EMERGENCY STOP")
+                break
+
             if int(prev_time.total_seconds()) != int(self.time.total_seconds()):
                 print(self.time, geo_length(self.last_position, self.goal), self.last_imu_yaw, self.steering_status)
 
