@@ -124,6 +124,9 @@ class RoboOrienteering2018:
             print("Goal at %.2fm" % geo_length(self.last_position, goal))
             print("Heading %.1fdeg, imu" % math.degrees(geo_angle(self.last_position, goal)), self.last_imu_yaw)
             self.navigate_to_goal(goal, timedelta(seconds=20))
+            if (self.status & self.EMERGENCY_STOP) == 0:
+                print("EMERGENCY STOP2")
+                break
         
     def navigate_to_goal(self, goal, timeout):
         start_time = self.time
@@ -133,7 +136,20 @@ class RoboOrienteering2018:
             wheel_heading = normalizeAnglePIPI(desired_heading-spider_heading)
 
             desired_steering = int(-512*math.degrees(wheel_heading)/360.0)
-            self.set_speed(self.maxspeed, desired_steering)
+
+            speed = self.maxspeed
+            if self.steering_status[0] is None:
+                speed = 1  # in in place
+            else:
+                 d = desired_steering - self.steering_status[0]
+                 if d > 256:
+                     d -= 512
+                 elif d < -256:
+                     d += 512
+                 if abs(d) > 30:
+                     speed = 1  # turn in place (II.)
+
+            self.set_speed(speed, desired_steering)
 
             prev_time = self.time
             self.update()
