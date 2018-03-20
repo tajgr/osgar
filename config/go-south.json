@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "robot": {
+    "modules": {
+      "app": {
+          "init": {
+            "maxspeed": 1,
+            "waypoints": [[50.128246666666, 14.3748658333333]]
+          }
+      }
+    }
+  }
+}
+
