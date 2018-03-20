@@ -52,8 +52,7 @@ class RoboOrienteering2018:
     def __init__(self, config, bus):
         self.bus = bus
         self.maxspeed = config['maxspeed']
-        lat, lon = config['waypoints'][0]
-        self.goal = latlon2xy(lat, lon)
+        self.goals = [latlon2xy(lat, lon) for lat, lon in config['waypoints']]
         self.time = None
         self.last_position = None  # (lon, lat) in milliseconds
         self.last_imu_yaw = None  # magnetic north in degrees
@@ -120,14 +119,16 @@ class RoboOrienteering2018:
             self.update()
         print(self.steering_status)
 
-        print("Ready")
-        print("Goal at %.2fm" % geo_length(self.last_position, self.goal))
-
-        print("Heading %.1fdeg, imu" % math.degrees(geo_angle(self.last_position, self.goal)), self.last_imu_yaw)
+        print("Ready", self.goals)
+        for goal in self.goals:
+            print("Goal at %.2fm" % geo_length(self.last_position, goal))
+            print("Heading %.1fdeg, imu" % math.degrees(geo_angle(self.last_position, goal)), self.last_imu_yaw)
+            self.navigate_to_goal(goal, timedelta(seconds=20))
         
+    def navigate_to_goal(self, goal, timeout):
         start_time = self.time
-        while geo_length(self.last_position, self.goal) > 1.0 and self.time - start_time < timedelta(seconds=20):
-            desired_heading = normalizeAnglePIPI(geo_angle(self.last_position, self.goal))
+        while geo_length(self.last_position, goal) > 1.0 and self.time - start_time < timeout:
+            desired_heading = normalizeAnglePIPI(geo_angle(self.last_position, goal))
             spider_heading = normalizeAnglePIPI(math.radians(180 - self.last_imu_yaw - 35.5))
             wheel_heading = normalizeAnglePIPI(desired_heading-spider_heading)
 
@@ -142,7 +143,7 @@ class RoboOrienteering2018:
                 break
 
             if int(prev_time.total_seconds()) != int(self.time.total_seconds()):
-                print(self.time, geo_length(self.last_position, self.goal), self.last_imu_yaw, self.steering_status)
+                print(self.time, geo_length(self.last_position, goal), self.last_imu_yaw, self.steering_status)
 
         print("STOP (3s)")
         self.set_speed(0, 0)
