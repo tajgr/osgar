@@ -128,7 +128,7 @@ class RoboOrienteering2018:
         start_time = self.time
         while geo_length(self.last_position, self.goal) > 1.0 and self.time - start_time < timedelta(seconds=20):
             desired_heading = normalizeAnglePIPI(geo_angle(self.last_position, self.goal))
-            spider_heading = normalizeAnglePIPI(math.radians(180 + self.last_imu_yaw))
+            spider_heading = normalizeAnglePIPI(math.radians(180 - self.last_imu_yaw))
             wheel_heading = normalizeAnglePIPI(desired_heading-spider_heading)
 
             desired_steering = int(-512*math.degrees(wheel_heading)/360.0)
