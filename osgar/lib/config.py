@@ -4,6 +4,10 @@
 import json
 
 
+class MergeConflictError(Exception):
+    pass
+
+
 class Config(object):
 
     OLD_SUPPORTED_VERSION = 1
@@ -40,6 +44,8 @@ class Config(object):
 
     @staticmethod
     def merge_dict(dict1, dict2):
+        if not isinstance(dict1, dict) or not isinstance(dict2, dict):
+            raise MergeConflictError(str((dict1, dict2)))
         ret = dict1.copy()
         for key in dict2.keys():
             if key in dict1:

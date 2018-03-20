@@ -1,6 +1,6 @@
 import os
 import unittest
-from .config import *
+from .config import Config, MergeConflictError
 
 
 def test_data(filename, test_dir='test_data'):
@@ -35,6 +35,12 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(Config.merge_dict(dict1, dict2), merge)
 
         self.assertEqual(Config.merge_dict({'A':1}, {'A':1}), {'A':1})
+
+        with self.assertRaises(MergeConflictError) as e:
+            Config.merge_dict({'A':1}, {'A':2})
+
+        with self.assertRaises(MergeConflictError) as e:
+            Config.merge_dict({'A':{'B':1}}, {'A':2})
 
 # vim: expandtab sw=4 ts=4
 
