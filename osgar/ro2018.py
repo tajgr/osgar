@@ -174,11 +174,12 @@ class RoboOrienteering2018:
                 self.last_position_angle = self.last_position
 
             desired_heading = normalizeAnglePIPI(geo_angle(self.last_position, goal))
-            if gps_angle is None:
+            if gps_angle is None or self.steering_status[0] is None:
                 spider_heading = normalizeAnglePIPI(math.radians(180 - self.last_imu_yaw - 35.5))
+                wheel_heading = normalizeAnglePIPI(desired_heading-spider_heading)
             else:
-                spider_heading = gps_angle
-            wheel_heading = normalizeAnglePIPI(desired_heading-spider_heading)
+                wheel_heading = math.radians(-360*self.steering_status[0]/512)
+                wheel_heading = normalizeAnglePIPI(desired_heading - gps_angle + wheel_heading)
 
             desired_steering = int(-512*math.degrees(wheel_heading)/360.0)
 
