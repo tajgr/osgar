@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "robot": {
+    "modules": {
+      "cortexpilot": {
+          "driver": "cortexpilot",
+          "in": ["raw", "desired_speed"],
+          "out": ["raw", "encoders", "emergency_stop", "pose2d"],
+          "init": {}
+      },
+      "serial": {
+          "driver": "serial",
+          "in": ["raw"],
+          "out": ["raw"],
+          "init": {"port": "/dev/ttyS0", "speed": 115200}
+      }
+    },
+    "links": [["serial.raw", "cortexpilot.raw"], 
+              ["cortexpilot.raw", "serial.raw"]]
+  }
+}
