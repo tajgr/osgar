@@ -25,6 +25,6 @@ class EduroTest(unittest.TestCase):
         packet = robot.create_packet()
         self.assertEqual(len(packet), 3 + 15)
         self.assertEqual(sum(packet) % 256, 0)
-        self.assertEqual(packet[-1], 0xa4)
+        self.assertEqual(packet[-1], 0xa3)
 
 # vim: expandtab sw=4 ts=4

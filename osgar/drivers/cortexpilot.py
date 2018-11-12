@@ -18,7 +18,7 @@ class Cortexpilot(Thread):
 
         self.desired_speed = 0.0  # m/s
         self.desired_angular_speed = 0.0
-        self.flags = 0x40  # laser ON, TODO
+        self.flags = 0x41  # local steering, PWM OFF, laser ON, TODO
 
         self.emergency_stop = None  # uknown state
         self.pose = (0.0, 0.0, 0.0)  # x, y in meters, heading in radians (not corrected to 2PI)
