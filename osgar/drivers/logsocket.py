@@ -25,6 +25,7 @@ class LogSocket:
         self.bufsize = config.get('bufsize', 1024)
 
         self.bus = bus
+        self.server = config.get('server', False)
 
     def _send(self, data):
         raise NotImplementedError()
@@ -38,7 +39,16 @@ class LogSocket:
         self.output_thread.join(timeout=timeout)
 
     def run_input(self):
+        if self.server:
+            print("Waiting ...")
+            self.socket.listen(1)
+            print("end of listen")
+            self.socket, addr = self.socket.accept()
+            print('Connected by', addr)
         while self.bus.is_alive():
+            if self.pair[1] == 0:
+                self.bus.sleep(0.1)
+                continue
             try:
                 data = self.socket.recv(self.bufsize)
                 if len(data) > 0:
@@ -62,10 +72,19 @@ class LogTCP(LogSocket):
     def __init__(self, config, bus):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         LogSocket.__init__(self, soc, config, bus)
-        self.socket.connect(self.pair)
+
+        if config.get('server', False):
+            soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            soc.bind(self.pair)
+        elif self.pair[1] != 0:  # 0 for dynamic assignment
+            self.socket.connect(self.pair)
 
     def _send(self, data):
-        self.socket.send(data)
+        if self.pair[1] == 0:
+            self.pair = tuple(data)
+            self.socket.connect(self.pair)
+        else:
+            self.socket.send(data)
 
 
 class LogUDP(LogSocket):
