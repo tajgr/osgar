@@ -1,24 +1,26 @@
 import unittest
+from unittest.mock import MagicMock
 
 from osgar.drivers.cortexpilot import Cortexpilot
 from osgar.bus import BusHandler
 
 
-class EduroTest(unittest.TestCase):
+class CortextpilotTest(unittest.TestCase):
 
-    def Xtest_usage(self):
+    def test_usage(self):
         q = MagicMock()
         logger = MagicMock()
         logger.write = MagicMock(return_value=135)
         bus = BusHandler(logger=logger,
-                out={'can': [], 'encoders': [], 'emergency_stop': [],
-                     'pose2d': [(q, 'pose2d'),], 'buttons': []})
-        eduro = Eduro(config={}, bus=bus)
-        sync = CAN_packet(0x80, [])
-        bus.queue.put((123, 'can', sync))
-        bus.shutdown()
-        eduro.run()
-        q.put.assert_called_once_with((135, 'pose2d', [0, 0, 0]))
+                out={'raw': [(q, 'raw')], 'encoders': [], 'emergency_stop': [],
+                     'pose2d': [], 'buttons': []})
+        robot = Cortexpilot(config={}, bus=bus)
+        bus.queue.put((123, 'raw', b'sync'))
+        robot.start()
+        robot.request_stop()
+        robot.join()
+        q.put.assert_called_once_with((135, 'raw', 
+            b'\x00\x00\x0f\x01\x0c\x00\x00\x00\x00\x00\x00\x00\x00A\x00\x00\x00\xa3'))
 
     def test_create_packet(self):
         robot = Cortexpilot(config={}, bus=None)

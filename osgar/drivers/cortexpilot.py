@@ -33,7 +33,7 @@ class Cortexpilot(Thread):
 
     def run(self):
         try:
-            self.bus.publish('raw', self.make_cmd())
+            self.bus.publish('raw', self.create_packet())
             while True:
                 dt, channel, data = self.bus.listen()
                 if channel == 'raw':
