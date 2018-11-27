@@ -3,7 +3,7 @@
   "robot": {
     "modules": {
       "cortexpilot": {
-          "driver": "cortexpilot",
+          "driver": "osgar.drivers.cortexpilot:Cortexpilot",
           "in": ["raw", "desired_speed"],
           "out": ["raw", "encoders", "emergency_stop", "pose2d"],
           "init": {}
