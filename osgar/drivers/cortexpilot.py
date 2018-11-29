@@ -3,10 +3,13 @@
 """
 
 import struct
+import math
 from threading import Thread
 
 from osgar.bus import BusShutdownException
 
+
+ENC_SCALE = 1.0
 
 class Cortexpilot(Thread):
     def __init__(self, config, bus):
@@ -27,6 +30,11 @@ class Cortexpilot(Thread):
         self.flags = None
         self.voltage = None
         self.last_encoders = None
+
+    def send_pose(self):
+        x, y, heading = self.pose
+        self.bus.publish('pose2d', [round(x*1000), round(y*1000),
+                                round(math.degrees(heading)*100)])
 
     def create_packet(self):
         packet = struct.pack('<ffI', self.desired_speed,
@@ -61,7 +69,11 @@ class Cortexpilot(Thread):
         encoders = struct.unpack_from('<II', data, 5 + 6 * 4)
         if self.last_encoders is not None:
             step = [x - prev for x, prev in zip(encoders, self.last_encoders)]
+            step_x = ENC_SCALE * sum(step)/len(step)
+            x, y, heading = self.pose
+            self.pose = (x + step_x, y, heading)  # hack - ingnoring rotation
             self.bus.publish('encoders', step)
+            self.send_pose()
         self.last_encoders = encoders
 
     def run(self):
@@ -75,6 +87,9 @@ class Cortexpilot(Thread):
                     if packet is not None:
                         self.parse_packet(packet)
                         self.bus.publish('raw', self.create_packet())
+                if channel == 'desired_speed':
+                    self.desired_speed, self.desired_angular_speed = data[0]/1000.0, math.radians(data[1]/100.0)                    
+                    self.cmd_flags |= 0x02  # PWM ON
 
         except BusShutdownException:
             pass
