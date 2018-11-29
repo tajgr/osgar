@@ -85,4 +85,10 @@ class CortextpilotTest(unittest.TestCase):
         packet = robot.get_packet()
         self.assertIsNone(packet)
 
+    def test_parse_packet(self):
+        robot = Cortexpilot(config={}, bus=None)
+        robot.parse_packet(SAMPLE_DATA)
+        self.assertEqual(robot.flags, 0x0)
+        self.assertAlmostEqual(robot.voltage, 0.0)
+
 # vim: expandtab sw=4 ts=4
