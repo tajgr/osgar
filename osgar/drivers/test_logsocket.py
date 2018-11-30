@@ -69,7 +69,6 @@ class LogSocketTest(unittest.TestCase):
             device.request_stop()
             device.join()
 
-            instance.connect.assert_called_once_with(
-                    ('10.1.10.1', 8000))
+            instance.connect.assert_called_once_with(('10.1.10.1', 8000))
 
 # vim: expandtab sw=4 ts=4
