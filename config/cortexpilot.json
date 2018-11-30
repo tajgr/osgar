@@ -13,7 +13,7 @@
       "cortexpilot": {
           "driver": "osgar.drivers.cortexpilot:Cortexpilot",
           "in": ["raw", "desired_speed"],
-          "out": ["raw", "encoders", "emergency_stop", "pose2d"],
+          "out": ["raw", "encoders", "emergency_stop", "pose2d", "scan"],
           "init": {}
       },
       "serial": {

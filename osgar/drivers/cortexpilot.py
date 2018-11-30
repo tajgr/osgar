@@ -61,12 +61,8 @@ class Cortexpilot(Thread):
 
     def parse_packet(self, data):
         # expects already validated single sample with 3 bytes length prefix
-        addr = data[3]
-        assert addr == 1, addr
-        cmd = data[4]
-        assert cmd in [0x1, 0xC], cmd
-        self.flags, self.voltage = struct.unpack_from('<If', data, 5)
-        encoders = struct.unpack_from('<II', data, 5 + 6 * 4)
+        self.flags, self.voltage = struct.unpack_from('<If', data, 3)
+        encoders = struct.unpack_from('<II', data, 3 + 6 * 4)
         if self.last_encoders is not None:
             step = [x - prev for x, prev in zip(encoders, self.last_encoders)]
             step_x = ENC_SCALE * sum(step)/len(step)
@@ -75,6 +71,10 @@ class Cortexpilot(Thread):
             self.bus.publish('encoders', step)
             self.send_pose()
         self.last_encoders = encoders
+
+        # laser
+        scan = struct.unpack_from('<' + 'H'*240, data, 3 + 76)
+        self.bus.publish('scan', list(scan))
 
     def run(self):
         try:
