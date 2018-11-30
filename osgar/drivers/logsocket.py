@@ -69,6 +69,18 @@ class LogSocket:
 
 
 class LogTCP(LogSocket):
+    """
+      TCP driver - there are three typical use cases:
+      1) connection to existing static IP (i.e. SICK LIDAR)
+      2) prepare connection and wait for others to connect
+         (ROS proxy for publishers)
+      3) connect dynamically to previously unknown address
+         (ROS proxy for subscribers)
+
+    The first case (client) is default and 'host' IP and 'port' are defined
+    in config. The second case (server) requires configuration 'server':True.
+    Finally the dynamic third case is specifed by 'port':0.
+    """
     def __init__(self, config, bus):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         LogSocket.__init__(self, soc, config, bus)
