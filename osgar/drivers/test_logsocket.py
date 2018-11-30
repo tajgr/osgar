@@ -37,4 +37,21 @@ class LogSocketTest(unittest.TestCase):
             instance.sendto.assert_called_once_with(
                     b'bin data', ('192.168.2.23', 2111))
 
+    def test_tcp_server(self):
+        with patch('osgar.drivers.logsocket.socket.socket') as mock:
+            instance = mock.return_value
+            instance.accept = MagicMock(return_value=('127.0.0.1', 1234))
+            instance.recv = MagicMock(return_value=b'some bin data')
+
+            logger = MagicMock()
+            bus = BusHandler(logger)
+            config = {'host': '192.168.1.2', 'port':8080, 'server':True}
+            device = LogTCP(config=config, bus=bus)
+            device.start()
+            device.request_stop()
+            device.join()
+
+            instance.listen.assert_called_once_with(1)
+            instance.bind.assert_called_once_with(('192.168.1.2', 8080))
+
 # vim: expandtab sw=4 ts=4
