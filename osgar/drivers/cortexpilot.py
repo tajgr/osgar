@@ -113,6 +113,9 @@ class Cortexpilot(Thread):
                 if channel == 'desired_speed':
                     self.desired_speed, self.desired_angular_speed = data[0]/1000.0, math.radians(data[1]/100.0)                    
                     self.cmd_flags |= 0x02  # PWM ON
+                    if data == [0, 0]:
+                        print("TURN OFF")
+                        self.cmd_flags = 0x00  # turn everything OFF (hack for now)
 
         except BusShutdownException:
             pass
