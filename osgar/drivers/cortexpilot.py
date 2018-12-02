@@ -41,6 +41,11 @@ class Cortexpilot(Thread):
         self.bus.publish('pose2d', [round(x*1000), round(y*1000),
                                 round(math.degrees(heading)*100)])
 
+    def query_version(self):
+        ret = bytes([0, 0, 3, 0x1, 0x01])
+        checksum = sum(ret) & 0xFF
+        return ret + bytes([256-checksum])
+
     def create_packet(self):
         packet = struct.pack('<ffI', self.desired_speed,
                              self.desired_angular_speed, self.cmd_flags)
@@ -92,7 +97,7 @@ class Cortexpilot(Thread):
 
     def run(self):
         try:
-            self.bus.publish('raw', self.create_packet())
+            self.bus.publish('raw', self.query_version())
             while True:
                 dt, channel, data = self.bus.listen()
                 self.time = dt
@@ -100,7 +105,10 @@ class Cortexpilot(Thread):
                     self._buf += data
                     packet = self.get_packet()
                     if packet is not None:
-                        self.parse_packet(packet)
+                        if len(packet) < 256:  # TODO cmd value
+                            print(packet)
+                        else:
+                            self.parse_packet(packet)
                         self.bus.publish('raw', self.create_packet())
                 if channel == 'desired_speed':
                     self.desired_speed, self.desired_angular_speed = data[0]/1000.0, math.radians(data[1]/100.0)                    
