@@ -22,6 +22,7 @@ class Cortexpilot(Thread):
 
         self.bus = bus
         self._buf = b''
+        self.time = None
 
         # commands
         self.desired_speed = 0.0  # m/s
@@ -65,8 +66,17 @@ class Cortexpilot(Thread):
 
     def parse_packet(self, data):
         # expects already validated single sample with 3 bytes length prefix
-        self.flags, self.voltage = struct.unpack_from('<If', data, 3)
-        encoders = struct.unpack_from('<II', data, 3 + 6 * 4)
+        high, mid, low = data[:3]
+        assert high == 0, high
+        assert mid == 2, mid
+        assert low == 44, low
+        addr, cmd = data[3:5]
+        assert addr == 1, addr
+        assert cmd == 0xC, cmd
+        offset = 5  # payload offset
+        self.flags, self.voltage = struct.unpack_from('<If', data, offset)
+        encoders = struct.unpack_from('<II', data, offset + 6 * 4)
+        motors = struct.unpack_from('<ff', data, offset + 12)
         if self.last_encoders is not None:
             step = [x - prev for x, prev in zip(encoders, self.last_encoders)]
             step_x = ENC_SCALE * sum(step)/len(step)
@@ -77,7 +87,7 @@ class Cortexpilot(Thread):
         self.last_encoders = encoders
 
         # laser
-        scan = struct.unpack_from('<' + 'H'*240, data, 3 + 76)
+        scan = struct.unpack_from('<' + 'H'*239, data, offset + 76)  # TODO should be 240
         self.bus.publish('scan', list(scan))
 
     def run(self):
@@ -85,6 +95,7 @@ class Cortexpilot(Thread):
             self.bus.publish('raw', self.create_packet())
             while True:
                 dt, channel, data = self.bus.listen()
+                self.time = dt
                 if channel == 'raw':
                     self._buf += data
                     packet = self.get_packet()
