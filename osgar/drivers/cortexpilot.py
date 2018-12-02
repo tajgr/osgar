@@ -27,7 +27,7 @@ class Cortexpilot(Thread):
         # commands
         self.desired_speed = 0.0  # m/s
         self.desired_angular_speed = 0.0
-        self.cmd_flags = 0x40  # 0 = remote steering, PWM OFF, laser ON, TODO
+        self.cmd_flags = 0x41  # 0 = local steering, PWM OFF, laser ON, TODO
 
         # status
         self.emergency_stop = None  # uknown state
@@ -35,6 +35,7 @@ class Cortexpilot(Thread):
         self.flags = None
         self.voltage = None
         self.last_encoders = None
+        self.yaw = None
 
     def send_pose(self):
         x, y, heading = self.pose
@@ -47,8 +48,11 @@ class Cortexpilot(Thread):
         return ret + bytes([256-checksum])
 
     def create_packet(self):
+        if self.yaw is None:
+            self.yaw = 0.0  # hack!
         packet = struct.pack('<ffI', self.desired_speed,
-                             self.desired_angular_speed, self.cmd_flags)
+#                             self.desired_angular_speed, self.cmd_flags)
+                             self.yaw, self.cmd_flags)
         assert len(packet) < 256, len(packet)  # just to use LSB only
         ret = bytes([0, 0, len(packet) + 2 + 1, 0x1, 0x0C]) + packet
         checksum = sum(ret) & 0xFF
@@ -82,6 +86,7 @@ class Cortexpilot(Thread):
         self.flags, self.voltage = struct.unpack_from('<If', data, offset)
         encoders = struct.unpack_from('<II', data, offset + 6 * 4)
         motors = struct.unpack_from('<ff', data, offset + 12)
+        self.yaw = struct.unpack_from('<f', data, offset + 70)[0]
         if self.last_encoders is not None:
             step = [x - prev for x, prev in zip(encoders, self.last_encoders)]
             step_x = ENC_SCALE * sum(step)/len(step)
