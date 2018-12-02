@@ -27,7 +27,7 @@ class Cortexpilot(Thread):
         # commands
         self.desired_speed = 0.0  # m/s
         self.desired_angular_speed = 0.0
-        self.cmd_flags = 0x41  # local steering, PWM OFF, laser ON, TODO
+        self.cmd_flags = 0x40  # 0 = remote steering, PWM OFF, laser ON, TODO
 
         # status
         self.emergency_stop = None  # uknown state
