@@ -9,7 +9,11 @@ from threading import Thread
 from osgar.bus import BusShutdownException
 
 
-ENC_SCALE = 1.0
+# CPR = 9958 (ticks per revolution)
+# wheel diameter D = 395 mm
+# 1 Rev = 1241 mm
+ENC_SCALE = 1.241/9958
+
 
 class Cortexpilot(Thread):
     def __init__(self, config, bus):
