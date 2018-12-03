@@ -27,7 +27,7 @@ class Cortexpilot(Thread):
         # commands
         self.desired_speed = 0.0  # m/s
         self.desired_angular_speed = 0.0
-        self.cmd_flags = 0x41  # 0 = local steering, PWM OFF, laser ON, TODO
+        self.cmd_flags = 0x40  # 0 = remote steering, PWM OFF, laser ON, TODO
 
         # status
         self.emergency_stop = None  # uknown state
@@ -51,8 +51,8 @@ class Cortexpilot(Thread):
         if self.yaw is None:
             self.yaw = 0.0  # hack!
         packet = struct.pack('<ffI', self.desired_speed,
-#                             self.desired_angular_speed, self.cmd_flags)
-                             self.yaw, self.cmd_flags)
+                             self.desired_angular_speed, self.cmd_flags)
+#                             self.yaw, self.cmd_flags)
         assert len(packet) < 256, len(packet)  # just to use LSB only
         ret = bytes([0, 0, len(packet) + 2 + 1, 0x1, 0x0C]) + packet
         checksum = sum(ret) & 0xFF
