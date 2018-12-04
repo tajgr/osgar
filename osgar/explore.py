@@ -56,6 +56,9 @@ if __name__ == "__main__":
     import argparse
     import sys
 
+    from osgar.lib.config import load as config_load
+    from osgar.record import Recorder
+
     parser = argparse.ArgumentParser(description='Follow Wall')
     subparsers = parser.add_subparsers(help='sub-command help', dest='command')
     subparsers.required = True
