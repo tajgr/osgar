@@ -85,7 +85,8 @@ if __name__ == "__main__":
         robot = Recorder(config=config['robot'], logger=log, application=FollowWall)
         game = robot.modules['app']  # TODO nicer reference
         robot.start()
-        robot.join()
+        # run is called from Node thread
+        robot.finish()
 
 # vim: expandtab sw=4 ts=4 
 
