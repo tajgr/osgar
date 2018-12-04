@@ -85,7 +85,10 @@ if __name__ == "__main__":
         recorder = Recorder(config=config['robot'], logger=log, application=FollowWall)
         game = recorder.modules['app']  # TODO nicer reference
         recorder.start()
-        game.join()
+        try:
+            game.join()
+        except KeyboardInterrupt:
+            print('USER shut down!')
         recorder.finish()
 
 # vim: expandtab sw=4 ts=4 
