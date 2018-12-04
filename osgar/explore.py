@@ -82,11 +82,11 @@ if __name__ == "__main__":
         log = LogWriter(prefix='wall-', note=str(sys.argv))
         config = config_load(*args.config)
         log.write(0, bytes(str(config), 'ascii'))  # write configuration
-        robot = Recorder(config=config['robot'], logger=log, application=FollowWall)
-        game = robot.modules['app']  # TODO nicer reference
-        robot.start()
-        # run is called from Node thread
-        robot.finish()
+        recorder = Recorder(config=config['robot'], logger=log, application=FollowWall)
+        game = recorder.modules['app']  # TODO nicer reference
+        recorder.start()
+        game.join()
+        recorder.finish()
 
 # vim: expandtab sw=4 ts=4 
 
