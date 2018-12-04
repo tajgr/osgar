@@ -54,6 +54,7 @@ class FollowWall(Node):
 if __name__ == "__main__":
     from osgar.logger import LogWriter, LogReader
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser(description='Follow Wall')
     subparsers = parser.add_subparsers(help='sub-command help', dest='command')
