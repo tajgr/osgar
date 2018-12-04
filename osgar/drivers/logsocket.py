@@ -17,15 +17,14 @@ class LogSocket:
         self.input_thread = Thread(target=self.run_input, daemon=True)
         self.output_thread = Thread(target=self.run_output, daemon=True)
 
-        host = config['host']
-        port = config['port']
-        self.pair = (host, port)
+        host = config.get('host')
+        port = config.get('port')
+        self.pair = (host, port)  # (None, None) for unknown address
         if 'timeout' in config:
             self.socket.settimeout(config['timeout'])
         self.bufsize = config.get('bufsize', 1024)
 
         self.bus = bus
-        self.server = config.get('server', False)
 
     def _send(self, data):
         raise NotImplementedError()
@@ -39,14 +38,8 @@ class LogSocket:
         self.output_thread.join(timeout=timeout)
 
     def run_input(self):
-        if self.server:
-            print("Waiting ...")
-            self.socket.listen(1)
-            print("end of listen")
-            self.socket, addr = self.socket.accept()
-            print('Connected by', addr)
         while self.bus.is_alive():
-            if self.pair[1] == 0:
+            if self.pair == (None, None):  # unknown address
                 self.bus.sleep(0.1)
                 continue
             try:
@@ -59,8 +52,15 @@ class LogSocket:
     def run_output(self):
         try:
             while True:
-                __, __, data = self.bus.listen()
-                self._send(data)
+                __, channel, data = self.bus.listen()
+                if channel == 'raw':
+                    self._send(data)
+                elif channel == 'addr':
+                    self.pair = tuple(data)
+                    self.socket.connect(self.pair)
+                else:
+                    assert False, channel  # unsupported channel
+ 
         except BusShutdownException:
             pass
 
@@ -68,36 +68,57 @@ class LogSocket:
         self.bus.shutdown()
 
 
-class LogTCP(LogSocket):
+class LogTCPStaticIP(LogSocket):
     """
-      TCP driver - there are three typical use cases:
-      1) connection to existing static IP (i.e. SICK LIDAR)
-      2) prepare connection and wait for others to connect
-         (ROS proxy for publishers)
-      3) connect dynamically to previously unknown address
-         (ROS proxy for subscribers)
-
-    The first case (client) is default and 'host' IP and 'port' are defined
-    in config. The second case (server) requires configuration 'server':True.
-    Finally the dynamic third case is specifed by 'port':0.
+      TCP driver for existing static IP (i.e. SICK LIDAR)
     """
     def __init__(self, config, bus):
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         LogSocket.__init__(self, soc, config, bus)
 
-        if config.get('server', False):
-            soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            soc.bind(self.pair)
-        elif self.pair[1] != 0:  # 0 for dynamic assignment
-            self.socket.connect(self.pair)
+        self.socket.connect(self.pair)
 
     def _send(self, data):
-        if self.pair[1] == 0:
-            self.pair = tuple(data)
-            self.socket.connect(self.pair)
-        else:
-            self.socket.send(data)
+        self.socket.send(data)
 
+
+class LogTCPDynamicIP(LogSocket):
+    """
+      TCP driver for dynamic previously unknown address
+         (ROS proxy for subscribers)
+    """
+
+    def __init__(self, config, bus):
+        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        LogSocket.__init__(self, soc, config, bus)
+
+    def _send(self, data):
+        self.socket.send(data)
+
+
+class LogTCPServer(LogSocket):
+    """
+      TCP driver for server side - prepare connection and wait
+      for others to connect (ROS proxy for publishers)
+    """
+
+    def __init__(self, config, bus):
+        soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        LogSocket.__init__(self, soc, config, bus)
+
+        soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        soc.bind(self.pair)
+
+    def _send(self, data):
+        self.socket.send(data)
+
+    def run_input(self):
+        print("Waiting ...")
+        self.socket.listen(1)
+        print("end of listen")
+        self.socket, addr = self.socket.accept()
+        print('Connected by', addr)
+        super().run_input()
 
 class LogUDP(LogSocket):
     def __init__(self, config, bus):
