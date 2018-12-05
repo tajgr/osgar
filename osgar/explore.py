@@ -3,10 +3,17 @@
     (use 2D SICK LIDAR only)
 """
 import math
+from datetime import timedelta
 
 import numpy as np
 
 from osgar.node import Node
+
+
+SAFE_DISTANCE_STOP = 0.5
+SAFE_DISTANCE_GO = SAFE_DISTANCE_STOP + 0.3
+WALL_DISTANCE = 1.0 # m
+DESIRED_SPEED = 0.5  # m/s
 
 
 def min_dist(data):
@@ -21,7 +28,7 @@ def min_dist_arr(data):
     """Fake segments as in demo.py for Velodyne"""
     num = len(data)
     # laser data are anticlockwise -> swap left, right
-    return min_dist(data[num/2:]), min_dist(data[:num/2])
+    return min_dist(data[num//2:]), min_dist(data[:num//2])
 
 
 def tangent_circle(dist, radius):
@@ -50,15 +57,42 @@ def follow_wall_angle(laser_data, radius):
 class FollowWall(Node):
     def __init__(self, config, bus):
         super().__init__(config, bus)
-        self.desired_speed = 0.0
 
-    def update(self):
-        channel = super().update()
-        if channel == 'scan':
-            print(follow_wall_angle(self.scan, radius=1.0))
-        elif channel == 'emergency_stop':
-            self.desired_speed = 0.0
-            self.request_stop()  # it should be "delayed"
+    def send_speed_cmd(self, speed, angular_speed):
+        return self.publish('desired_speed', [round(speed*1000), round(math.degrees(angular_speed)*100)])
+
+    def update(self):  # hack, this method should be called run instead!       
+        channel = super().update()  # define self.time
+
+        moving = False
+        desired_speed = 0.0
+        start_time = self.time
+        while self.time - start_time < timedelta(minutes=1):
+            channel = channel = super().update()
+            if channel == 'scan':
+                assert len(self.scan) == 811, len(self.scan)  # 541
+                distL, distR = min_dist_arr(self.scan[270:-270])  # was 200
+                distL = 20.0 if distL is None else distL
+                distR = 20.0 if distR is None else distR
+                dist = min(distL, distR)
+                desired_angular_speed = follow_wall_angle(self.scan, radius=WALL_DISTANCE)
+                print(desired_angular_speed)
+                if moving:
+                    if dist is None or dist < SAFE_DISTANCE_STOP:
+                        print("!!! STOP !!!",  dist, (distL, distR))
+                        desired_speed = 0.0
+                        desired_angular_speed = 0.0
+                        moving = False
+                else:  # not moving
+                    if dist > SAFE_DISTANCE_GO:
+                        print("GO",  dist)
+                        desired_speed = DESIRED_SPEED
+                        moving = True
+                self.send_speed_cmd(desired_speed, desired_angular_speed)
+
+            elif channel == 'emergency_stop':
+                self.send_speed_cmd(0.0, 0.0)
+                self.request_stop()  # it should be "delayed"
 
 
 if __name__ == "__main__":
