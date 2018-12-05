@@ -32,13 +32,14 @@ def tangent_circle(dist, radius):
     return None
 
 
-def follow_wall_angle(laser_data, radius = 2.0):
+def follow_wall_angle(laser_data, radius):
     data = np.array(laser_data)
-    mask = (data == 0)
+    size = len(laser_data)
+    mask = (data <= 10)  # ignore internal reflections
     data[mask] = 20000
-    index = np.argmin(data[:2*135])  # only right side
+    index = np.argmin(data[:size//2])  # only right side
     dist = data[index]/1000.0
-    laser_angle = math.radians((-270+index)/2.0)
+    laser_angle = math.radians((-270+index)/3.0)  # TODO angular resolution
     angle = tangent_circle(dist, radius)
     if angle is not None:
         # print '(%d, %.3f) %.1f' % (index, dist, math.degrees(laser_angle + angle))
@@ -49,6 +50,15 @@ def follow_wall_angle(laser_data, radius = 2.0):
 class FollowWall(Node):
     def __init__(self, config, bus):
         super().__init__(config, bus)
+        self.desired_speed = 0.0
+
+    def update(self):
+        channel = super().update()
+        if channel == 'scan':
+            print(follow_wall_angle(self.scan, radius=1.0))
+        elif channel == 'emergency_stop':
+            self.desired_speed = 0.0
+            self.request_stop()  # it should be "delayed"
 
 
 if __name__ == "__main__":
